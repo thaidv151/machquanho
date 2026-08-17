@@ -12,12 +12,12 @@ interface ArticleDetailPageProps {
 
 export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
   article,
-  relatedArticles,
+  relatedArticles = [],
   onNavigate,
   isPlayingAudio
 }) => {
   const [bookmarked, setBookmarked] = useState(false);
-  const [likes, setLikes] = useState(article.views > 100 ? Math.floor(article.views / 12) : 24);
+  const [likes, setLikes] = useState(() => (article?.views && article.views > 100 ? Math.floor(article.views / 12) : 24));
   const [hasLiked, setHasLiked] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<{ name: string; date: string; content: string }[]>([
@@ -32,6 +32,28 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
       content: 'Nghe làn điệu phát trên trang mà bồi hồi xúc động, như được hòa mình vào không khí ngày hội Lim đầu xuân.'
     }
   ]);
+
+  if (!article) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center text-center p-8 space-y-4 bg-[#FAF8F5]">
+        <div className="w-12 h-12 rounded-full bg-[#114D3A]/10 text-[#114D3A] flex items-center justify-center animate-spin">
+          <Sparkles className="w-6 h-6" />
+        </div>
+        <h2 className="font-serif-culture text-xl font-bold text-[#114D3A]">
+          Đang tải dữ liệu bài viết...
+        </h2>
+        <p className="text-xs text-[#6B5A4E]">
+          Hệ thống đang cập nhật dữ liệu từ máy chủ. Vui lòng chờ trong giây lát.
+        </p>
+        <button
+          onClick={() => onNavigate({ type: 'news' })}
+          className="px-6 py-2.5 rounded-full bg-[#114D3A] text-white text-xs font-bold hover:bg-[#0D3B2C] transition-colors cursor-pointer shadow-xs"
+        >
+          &larr; Quay lại danh sách tin tức
+        </button>
+      </div>
+    );
+  }
 
   const handleLike = () => {
     if (!hasLiked) {

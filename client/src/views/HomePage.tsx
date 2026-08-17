@@ -27,7 +27,7 @@ export const HomePage: React.FC<HomePageProps> = ({
 }) => {
   // Published articles only for client view
   const publishedArticles = articles.filter(a => a.status === 'Đã đăng');
-  const latestArticles = publishedArticles.slice(0, 4);
+  const latestArticles = publishedArticles.slice(0, 12);
 
   return (
     <div id="home-page-container" className="space-y-12">
@@ -39,17 +39,17 @@ export const HomePage: React.FC<HomePageProps> = ({
         isPlayingAudio={isPlayingAudio}
       />
 
-      {/* 2. Main Two-Column Content: News & Activities + Research Timeline */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+      {/* 2. Main Two-Column Content: News & Activities (8 cols) + Research Timeline (4 cols) */}
+      <section className="max-w-[1580px] mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
           
           {/* Left Column: Tin tức & Hoạt động (8 cols) */}
           <div className="lg:col-span-8 space-y-6">
             
             {/* Section Header */}
-            <div className="flex items-center justify-between pb-3 border-b-2 border-[#8C2320]">
+            <div className="flex items-center justify-between pb-3 border-b-2 border-[#114D3A]">
               <div className="flex items-center space-x-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#8C2320] flex items-center justify-center text-white">
+                <div className="w-8 h-8 rounded-lg bg-[#114D3A] flex items-center justify-center text-white shadow-xs">
                   <Newspaper className="w-4 h-4" />
                 </div>
                 <h2 className="font-serif-culture text-2xl sm:text-3xl font-bold text-[#2D241E]">
@@ -60,99 +60,115 @@ export const HomePage: React.FC<HomePageProps> = ({
               <button
                 id="view-all-news-link"
                 onClick={() => onNavigate({ type: 'news' })}
-                className="text-xs sm:text-sm font-semibold text-[#8C2320] hover:text-[#5E1412] flex items-center space-x-1 cursor-pointer group"
+                className="text-xs sm:text-sm font-bold text-[#114D3A] hover:text-[#8C2F2F] flex items-center space-x-1 cursor-pointer group"
               >
                 <span>Xem tất cả bài viết</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
 
-            {/* 2x2 Responsive News Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {latestArticles.map((article) => (
-                <article
-                  key={article.id}
-                  id={`home-article-card-${article.id}`}
-                  onClick={() => onNavigate({ type: 'article-detail', articleId: article.id })}
-                  className="bg-white rounded-2xl overflow-hidden border border-[#E8DFC8] hover:border-[#8C2320] hover:shadow-lg transition-all duration-300 group cursor-pointer flex flex-col justify-between"
-                >
-                  {/* Card Thumbnail */}
-                  <div className="relative h-48 sm:h-52 overflow-hidden bg-[#2D1614]">
-                    <img
-                      src={article.coverImage}
-                      alt={article.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                    
-                    {/* Category Pill */}
-                    <span className="absolute top-3 left-3 px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#8C2320] text-white shadow-xs">
-                      {article.category}
-                    </span>
-
-                    {/* Audio indicator if present */}
-                    {article.audioTitle && (
-                      <span className="absolute top-3 right-3 p-1.5 rounded-full bg-black/60 backdrop-blur-xs text-[#E5B567]">
-                        <Music className="w-3.5 h-3.5" />
-                      </span>
-                    )}
-
-                    {/* Read time floating */}
-                    <span className="absolute bottom-2.5 right-3 text-[11px] text-white/90 font-medium flex items-center space-x-1">
-                      <Clock className="w-3 h-3 text-[#E5B567]" />
-                      <span>{article.readTime}</span>
-                    </span>
-                  </div>
-
-                  {/* Card Body */}
-                  <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                    <div>
-                      <div className="flex items-center space-x-3 text-xs text-[#8C6B50] mb-2">
-                        <span className="flex items-center space-x-1">
-                          <Calendar className="w-3 h-3" />
-                          <span>{article.date}</span>
+            {/* 4 Articles on 1 Single Row Grid inside 8-Col Section */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+              {latestArticles.map((article) => {
+                const articleSlugOrId = article.slug || article.id;
+                return (
+                  <article
+                    key={article.id}
+                    id={`home-article-card-${articleSlugOrId}`}
+                    onClick={() => onNavigate({ type: 'article-detail', articleId: articleSlugOrId })}
+                    className="bg-white rounded-2xl overflow-hidden border border-[#E3D5C3] hover:border-[#114D3A] hover:shadow-lg transition-all duration-300 group cursor-pointer flex flex-col justify-between"
+                  >
+                    {/* Card Thumbnail */}
+                    <div className="relative h-36 sm:h-40 overflow-hidden bg-[#0A3326]">
+                      <img
+                        src={article.coverImage}
+                        alt={article.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                      
+                      {/* Real Category Pill */}
+                      {article.category && (
+                        <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#8C2F2F] text-white shadow-xs">
+                          {article.category}
                         </span>
-                        <span>•</span>
-                        <span>{article.author}</span>
+                      )}
+
+                      {/* Real Audio indicator if present */}
+                      {article.audioTitle && (
+                        <span className="absolute top-2 right-2 p-1 rounded-full bg-black/60 backdrop-blur-xs text-[#D4A25A]" title={article.audioTitle}>
+                          <Music className="w-3 h-3" />
+                        </span>
+                      )}
+
+                      {/* Real Read time floating */}
+                      {article.readTime && (
+                        <span className="absolute bottom-2 right-2 text-[10px] text-white/90 font-medium flex items-center space-x-1">
+                          <Clock className="w-3 h-3 text-[#D4A25A]" />
+                          <span>{article.readTime}</span>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Card Body */}
+                    <div className="p-3.5 flex-1 flex flex-col justify-between space-y-2">
+                      <div>
+                        <div className="flex flex-wrap items-center space-x-2 text-[11px] text-[#8C6B50] mb-1">
+                          {article.date && (
+                            <span className="flex items-center space-x-1">
+                              <Calendar className="w-3 h-3 text-[#D4A25A]" />
+                              <span>{article.date}</span>
+                            </span>
+                          )}
+                          {article.author && (
+                            <>
+                              <span>•</span>
+                              <span className="truncate max-w-[90px]">{article.author}</span>
+                            </>
+                          )}
+                        </div>
+
+                        <h3 className="font-serif-culture text-sm font-bold text-[#2D241E] group-hover:text-[#114D3A] transition-colors line-clamp-2 leading-snug">
+                          {article.title}
+                        </h3>
+
+                        {article.excerpt && (
+                          <p className="text-[11.5px] text-[#6B5A4E] mt-1 line-clamp-2 leading-relaxed">
+                            {article.excerpt}
+                          </p>
+                        )}
                       </div>
 
-                      <h3 className="font-serif-culture text-base sm:text-lg font-bold text-[#2D241E] group-hover:text-[#8C2320] transition-colors line-clamp-2 leading-snug">
-                        {article.title}
-                      </h3>
-
-                      <p className="text-xs sm:text-sm text-[#6B5A4E] mt-2 line-clamp-2 leading-relaxed">
-                        {article.excerpt}
-                      </p>
+                      {/* Real Views Count & Link */}
+                      <div className="pt-2 border-t border-[#E3D5C3]/60 flex items-center justify-between text-[11px]">
+                        <span className="text-[#8C6B50] font-medium flex items-center space-x-1">
+                          <Eye className="w-3 h-3 text-[#114D3A]" />
+                          <span>{(article.views || 0).toLocaleString('vi-VN')} lượt xem</span>
+                        </span>
+                        <span className="font-bold text-[#114D3A] group-hover:translate-x-0.5 transition-transform flex items-center space-x-1">
+                          <span>Đọc tiếp</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </span>
+                      </div>
                     </div>
-
-                    {/* Tags / Link */}
-                    <div className="pt-3 border-t border-[#F0EBE1] flex items-center justify-between text-xs">
-                      <span className="text-[#8C6B50] font-medium">
-                        {article.views} lượt xem
-                      </span>
-                      <span className="font-semibold text-[#8C2320] group-hover:translate-x-0.5 transition-transform flex items-center space-x-1">
-                        <span>Đọc tiếp</span>
-                        <ArrowRight className="w-3 h-3" />
-                      </span>
-                    </div>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                );
+              })}
             </div>
 
             {/* Quick Explore Banner in News Section */}
-            <div className="bg-[#FAF6F0] p-5 rounded-2xl border border-[#E8DFC8] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="bg-[#E3D5C3]/40 p-5 rounded-2xl border border-[#E3D5C3] flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="space-y-1 text-center sm:text-left">
-                <h4 className="font-serif-culture text-base font-bold text-[#2D241E]">
+                <h4 className="font-serif-culture text-base font-bold text-[#114D3A]">
                   Bạn muốn tìm hiểu các làn điệu Quan họ cổ?
                 </h4>
-                <p className="text-xs text-[#7A6B60]">
+                <p className="text-xs text-[#6B5A4E]">
                   Khám phá kho tư liệu hơn 200 làn điệu lề lối, giọng vặt và giã bạn có bản thu âm.
                 </p>
               </div>
               <button
                 onClick={() => onSelectTopic('exp-lan-dieu')}
-                className="px-4 py-2 rounded-full bg-[#8C2320] text-white text-xs font-semibold hover:bg-[#6E1B19] transition-colors cursor-pointer shrink-0"
+                className="px-4 py-2 rounded-full bg-[#114D3A] text-white text-xs font-semibold hover:bg-[#0D3B2C] transition-colors cursor-pointer shrink-0 shadow-xs"
               >
                 Khám phá Làn điệu
               </button>

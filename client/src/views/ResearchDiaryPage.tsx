@@ -39,7 +39,7 @@ export const ResearchDiaryPage: React.FC<ResearchDiaryPageProps> = ({
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-[1580px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-xs text-[#E5B567] text-xs font-semibold uppercase tracking-wider mb-3">
             <BookOpen className="w-3.5 h-3.5" />
             <span>Tư liệu điền dã & Khảo sát thực địa</span>
@@ -53,7 +53,7 @@ export const ResearchDiaryPage: React.FC<ResearchDiaryPageProps> = ({
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      <div className="max-w-[1580px] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         
         {/* Phase Filter Tabs */}
         <div className="flex items-center space-x-2 pb-6 border-b border-[#E8DFC8] overflow-x-auto scrollbar-none">

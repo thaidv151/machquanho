@@ -1,6 +1,7 @@
 import React from 'react';
-import { ViewState, SiteConfig } from '../types';
-import { Mail, Phone, MapPin, Heart, ArrowUpRight, Sparkles } from 'lucide-react';
+import { ViewState, SiteConfig, SiteFooterConfig } from '../types';
+import { Mail, Phone, MapPin, Facebook, Youtube, Send } from 'lucide-react';
+import { DEFAULT_SITE_CONFIG } from '../data/mockData';
 
 interface FooterProps {
   onNavigate: (view: ViewState) => void;
@@ -8,157 +9,155 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate, siteConfig }) => {
+  const footerConfig: SiteFooterConfig = siteConfig.footer || DEFAULT_SITE_CONFIG.footer!;
+
+  const handleLinkClick = (url: string) => {
+    if (!url || url === '#') return;
+    if (url === '/' || url === '/home') {
+      onNavigate({ type: 'home' });
+    } else if (url.startsWith('/news')) {
+      onNavigate({ type: 'news' });
+    } else if (url.startsWith('/research-diary')) {
+      onNavigate({ type: 'research-diary' });
+    } else if (url.startsWith('/about')) {
+      onNavigate({ type: 'about' });
+    } else if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('mailto:')) {
+      window.open(url, '_blank');
+    } else {
+      window.location.href = url;
+    }
+  };
+
   return (
-    <footer id="site-footer" className="bg-[#1C1412] text-[#E0D5CE] pt-16 pb-12 border-t-4 border-[#8C2320]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <footer id="site-footer" className="bg-[#092B20] text-[#F2E9DD] pt-12 pb-6 border-t-2 border-[#114D3A]">
+      <div className="max-w-[1580px] mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Main 4-Column Footer Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-[#3D302B]">
+        {/* Main 4-Column Layout with Vertical Border Lines */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 pb-10">
           
-          {/* Column 1: Brand Info */}
-          <div className="space-y-4">
+          {/* Column 1: Brand Info (lg:col-span-4) */}
+          <div className="lg:col-span-4 space-y-3.5 pr-0 lg:pr-6 border-b lg:border-b-0 lg:border-r border-white/10 pb-6 lg:pb-0">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-lg bg-[#8C2320] flex items-center justify-center text-[#FAF8F5] font-serif-culture font-bold text-lg border border-[#A24442]">
+              <div className="w-10 h-10 rounded-full bg-[#114D3A] flex items-center justify-center text-[#D4A25A] font-serif-culture font-bold text-lg border border-[#D4A25A]/40 shadow-xs shrink-0">
                 MQ
               </div>
               <div>
-                <h3 className="font-serif-culture text-xl font-bold text-[#F5EDE8]">
+                <h3 className="font-serif-culture text-xl font-bold tracking-wide text-white">
                   {siteConfig.siteName || 'MẠCH QUAN HỌ'}
                 </h3>
-                <p className="text-xs text-[#A8988B] tracking-wider uppercase font-medium">
-                  {siteConfig.logoSubtext || 'Kinh Bắc Di Sản'}
+                <p className="text-xs text-[#D4A25A] font-medium tracking-wide">
+                  {footerConfig.tagline}
                 </p>
               </div>
             </div>
-            <p className="text-xs sm:text-sm text-[#C4B7AC] leading-relaxed">
-              Dự án số hóa, bảo tồn và quảng bá giá trị di sản Dân ca Quan họ Bắc Ninh – Di sản Văn hóa Phi vật thể đại diện của Nhân loại do UNESCO ghi danh.
+            <p className="text-xs text-[#F2E9DD]/80 leading-relaxed font-normal">
+              {footerConfig.description}
             </p>
-            <div className="pt-2 flex items-center space-x-3 text-xs text-[#D9A066]">
-              <Sparkles className="w-4 h-4 text-[#E5B567]" />
-              <span>Gìn giữ hồn cốt – Thắp sáng tương lai</span>
-            </div>
           </div>
 
-          {/* Column 2: Quick Links */}
-          <div className="space-y-3.5">
-            <h4 className="font-serif-culture text-base font-semibold text-[#F5EDE8] tracking-wide border-l-2 border-[#8C2320] pl-2.5">
-              Liên kết nhanh
+          {/* Column 2: Quick Links (lg:col-span-3) */}
+          <div className="lg:col-span-3 space-y-3 px-0 lg:px-6 border-b lg:border-b-0 lg:border-r border-white/10 pb-6 lg:pb-0">
+            <h4 className="font-serif-culture text-sm font-bold text-[#D4A25A] tracking-wider uppercase">
+              {footerConfig.quickLinksTitle || 'LIÊN KẾT NHANH'}
             </h4>
-            <ul className="space-y-2 text-xs sm:text-sm">
-              <li>
-                <button 
-                  onClick={() => onNavigate({ type: 'home' })}
-                  className="text-[#C4B7AC] hover:text-[#E5B567] transition-colors flex items-center space-x-1 cursor-pointer"
-                >
-                  <span>Trang chủ</span>
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => onNavigate({ type: 'news' })}
-                  className="text-[#C4B7AC] hover:text-[#E5B567] transition-colors flex items-center space-x-1 cursor-pointer"
-                >
-                  <span>Tin tức & Hoạt động di sản</span>
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => onNavigate({ type: 'research-diary' })}
-                  className="text-[#C4B7AC] hover:text-[#E5B567] transition-colors flex items-center space-x-1 cursor-pointer"
-                >
-                  <span>Nhật ký điền dã & nghiên cứu</span>
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => onNavigate({ type: 'about' })}
-                  className="text-[#C4B7AC] hover:text-[#E5B567] transition-colors flex items-center space-x-1 cursor-pointer"
-                >
-                  <span>Về chúng tôi & Nghệ nhân</span>
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => onNavigate({ type: 'admin', section: 'dashboard' })}
-                  className="text-[#C4B7AC] hover:text-[#E5B567] transition-colors flex items-center space-x-1 cursor-pointer"
-                >
-                  <span>Cổng quản trị nội dung (CMS)</span>
-                  <ArrowUpRight className="w-3 h-3 opacity-60" />
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 3: Categories */}
-          <div className="space-y-3.5">
-            <h4 className="font-serif-culture text-base font-semibold text-[#F5EDE8] tracking-wide border-l-2 border-[#8C2320] pl-2.5">
-              Chuyên mục chính
-            </h4>
-            <ul className="space-y-2 text-xs sm:text-sm">
-              {['Sự kiện', 'Chính sách', 'Góc nhìn', 'Hoạt động', 'Nghệ nhân', 'Khám phá'].map((cat, idx) => (
-                <li key={idx}>
-                  <button 
-                    onClick={() => onNavigate({ type: 'news', category: cat })}
-                    className="text-[#C4B7AC] hover:text-[#E5B567] transition-colors cursor-pointer flex items-center justify-between w-full max-w-[180px]"
+            <ul className="space-y-2 text-xs">
+              {(footerConfig.quickLinks || []).map((link) => (
+                <li key={link.id}>
+                  <button
+                    onClick={() => handleLinkClick(link.url)}
+                    className="text-[#F2E9DD]/85 hover:text-[#D4A25A] transition-colors cursor-pointer text-left block"
                   >
-                    <span>{cat}</span>
-                    <span className="text-[11px] text-[#7A685D] group-hover:text-[#E5B567]">●</span>
+                    {link.label}
                   </button>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Column 4: Contact info */}
-          <div className="space-y-3.5">
-            <h4 className="font-serif-culture text-base font-semibold text-[#F5EDE8] tracking-wide border-l-2 border-[#8C2320] pl-2.5">
-              Thông tin liên hệ
+          {/* Column 3: Social Links / Platforms (lg:col-span-2) */}
+          <div className="lg:col-span-2 space-y-3 px-0 lg:px-6 border-b lg:border-b-0 lg:border-r border-white/10 pb-6 lg:pb-0">
+            <h4 className="font-serif-culture text-sm font-bold text-[#D4A25A] tracking-wider uppercase">
+              {footerConfig.socialLinksTitle || 'KẾT NỐI VỚI CHÚNG TÔI'}
             </h4>
-            <div className="space-y-2.5 text-xs sm:text-sm text-[#C4B7AC]">
-              <div className="flex items-start space-x-2.5">
-                <MapPin className="w-4 h-4 text-[#8C2320] shrink-0 mt-0.5" />
-                <span>{siteConfig.address}</span>
-              </div>
-              <div className="flex items-center space-x-2.5">
-                <Phone className="w-4 h-4 text-[#8C2320] shrink-0" />
-                <span>{siteConfig.contactPhone}</span>
-              </div>
-              <div className="flex items-center space-x-2.5">
-                <Mail className="w-4 h-4 text-[#8C2320] shrink-0" />
-                <span>{siteConfig.contactEmail}</span>
-              </div>
-            </div>
-
-            {/* Newsletter input */}
-            <div className="pt-2">
-              <label className="text-xs text-[#A8988B] block mb-1.5 font-medium">Nhận thông báo bài viết mới:</label>
-              <div className="flex rounded-lg overflow-hidden border border-[#3D302B] focus-within:border-[#8C2320]">
-                <input 
-                  type="email" 
-                  placeholder="Email của bạn..." 
-                  className="bg-[#241A17] px-3 py-1.5 text-xs text-white placeholder-[#6B5A4E] focus:outline-none flex-1"
-                />
-                <button 
-                  type="button" 
-                  onClick={() => alert('Cảm ơn bạn đã đăng ký nhận tin từ Mạch Quan Họ!')}
-                  className="bg-[#8C2320] hover:bg-[#A24442] text-white text-xs px-3 py-1.5 font-medium transition-colors cursor-pointer"
+            <div className="flex flex-wrap items-center gap-2.5 pt-1">
+              {(footerConfig.socialPlatforms && footerConfig.socialPlatforms.length > 0
+                ? footerConfig.socialPlatforms
+                : [
+                    { id: 'sp-1', name: 'Facebook', url: siteConfig.socialLinks?.facebook || '#', iconType: 'facebook' },
+                    { id: 'sp-2', name: 'YouTube', url: siteConfig.socialLinks?.youtube || '#', iconType: 'youtube' },
+                    { id: 'sp-3', name: 'TikTok', url: siteConfig.socialLinks?.tiktok || '#', iconType: 'tiktok' },
+                    { id: 'sp-4', name: 'Email', url: `mailto:${footerConfig.email || 'machquanho@gmail.com'}`, iconType: 'email' }
+                  ]
+              ).map((item) => (
+                <a
+                  key={item.id}
+                  href={item.url || '#'}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#D4A25A] hover:text-[#092B20] text-white flex items-center justify-center transition-all cursor-pointer border border-white/15 overflow-hidden group shrink-0"
+                  title={item.name}
                 >
-                  Gửi
-                </button>
-              </div>
+                  {item.iconUrl ? (
+                    <img src={item.iconUrl} alt={item.name} className="w-5 h-5 object-contain group-hover:brightness-0 transition-all" />
+                  ) : item.iconType === 'facebook' ? (
+                    <Facebook className="w-4 h-4" />
+                  ) : item.iconType === 'youtube' ? (
+                    <Youtube className="w-4 h-4" />
+                  ) : item.iconType === 'tiktok' ? (
+                    <span className="text-xs font-bold">d</span>
+                  ) : item.iconType === 'email' ? (
+                    <Mail className="w-4 h-4" />
+                  ) : (
+                    <span className="text-xs font-bold">{item.name.charAt(0).toUpperCase()}</span>
+                  )}
+                </a>
+              ))}
             </div>
+          </div>
+
+          {/* Column 4: Contact Info (lg:col-span-3) */}
+          <div className="lg:col-span-3 space-y-3 pl-0 lg:pl-6">
+            <h4 className="font-serif-culture text-sm font-bold text-[#D4A25A] tracking-wider uppercase">
+              {footerConfig.contactTitle || 'THÔNG TIN LIÊN HỆ'}
+            </h4>
+            <ul className="space-y-2.5 text-xs text-[#F2E9DD]/85">
+              <li className="flex items-start space-x-2.5">
+                <MapPin className="w-4 h-4 text-[#D4A25A] shrink-0 mt-0.5" />
+                <span>{footerConfig.address || 'Bắc Ninh, Việt Nam'}</span>
+              </li>
+              <li className="flex items-center space-x-2.5">
+                <Mail className="w-4 h-4 text-[#D4A25A] shrink-0" />
+                <a href={`mailto:${footerConfig.email}`} className="hover:text-[#D4A25A] transition-colors">
+                  {footerConfig.email || 'machquanho@gmail.com'}
+                </a>
+              </li>
+              <li className="flex items-center space-x-2.5">
+                <Phone className="w-4 h-4 text-[#D4A25A] shrink-0" />
+                <a href={`tel:${footerConfig.phone}`} className="hover:text-[#D4A25A] transition-colors">
+                  {footerConfig.phone || '0123 456 789'}
+                </a>
+              </li>
+            </ul>
           </div>
 
         </div>
 
-        {/* Bottom copyright */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-[#8C7A6E] space-y-3 sm:space-y-0">
-          <div>
-            © {new Date().getFullYear()} <strong className="text-[#B5A496]">Mạch Quan Họ</strong>. Tất cả quyền được bảo lưu.
-          </div>
-          <div className="flex items-center space-x-1">
-            <span>Bảo tồn & phát huy di sản văn hóa Kinh Bắc với</span>
-            <Heart className="w-3.5 h-3.5 text-[#B83E3E] inline fill-[#B83E3E] mx-1" />
+        {/* Bottom Bar: Copyright & Sub-links */}
+        <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#F2E9DD]/70">
+          <p>{footerConfig.copyrightText || '© 2026 Mạch Quan Họ. All rights reserved.'}</p>
+
+          <div className="flex items-center space-x-3">
+            {(footerConfig.bottomLinks || []).map((link, index) => (
+              <React.Fragment key={link.id}>
+                {index > 0 && <span className="text-white/30">|</span>}
+                <button
+                  onClick={() => handleLinkClick(link.url)}
+                  className="hover:text-[#D4A25A] transition-colors cursor-pointer"
+                >
+                  {link.label}
+                </button>
+              </React.Fragment>
+            ))}
           </div>
         </div>
 

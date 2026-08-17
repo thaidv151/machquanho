@@ -60,7 +60,7 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center sm:text-left">
+        <div className="max-w-[1580px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center sm:text-left">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-xs text-[#E5B567] text-xs font-semibold uppercase tracking-wider mb-3">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Thông tin & Truyền thông</span>
@@ -74,7 +74,7 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+      <div className="max-w-[1580px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
         
         {/* Controls Bar: Category Pills + Search */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#E8DFC8]">
@@ -131,7 +131,7 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
         {featuredArticle && selectedCategory === 'Tất cả' && !searchQuery && (
           <div
             id="featured-hero-article"
-            onClick={() => onNavigate({ type: 'article-detail', articleId: featuredArticle.id })}
+            onClick={() => onNavigate({ type: 'article-detail', articleId: featuredArticle.slug || featuredArticle.id })}
             className="bg-white rounded-3xl overflow-hidden border border-[#E8DFC8] hover:border-[#8C2320] hover:shadow-xl transition-all duration-300 group cursor-pointer"
           >
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
@@ -199,13 +199,15 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
 
         {/* Regular Articles Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {currentGridArticles.map((article) => (
-            <article
-              key={article.id}
-              id={`news-card-${article.id}`}
-              onClick={() => onNavigate({ type: 'article-detail', articleId: article.id })}
-              className="bg-white rounded-2xl overflow-hidden border border-[#E8DFC8] hover:border-[#8C2320] hover:shadow-lg transition-all duration-300 group cursor-pointer flex flex-col justify-between"
-            >
+          {currentGridArticles.map((article) => {
+            const articleSlugOrId = article.slug || article.id;
+            return (
+              <article
+                key={article.id}
+                id={`news-card-${articleSlugOrId}`}
+                onClick={() => onNavigate({ type: 'article-detail', articleId: articleSlugOrId })}
+                className="bg-white rounded-2xl overflow-hidden border border-[#E8DFC8] hover:border-[#8C2320] hover:shadow-lg transition-all duration-300 group cursor-pointer flex flex-col justify-between"
+              >
               {/* Card Image */}
               <div className="relative h-48 overflow-hidden bg-[#2D1614]">
                 <img
@@ -256,7 +258,8 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
                 </div>
               </div>
             </article>
-          ))}
+          );
+        })}
         </div>
 
         {/* Pagination Controls */}

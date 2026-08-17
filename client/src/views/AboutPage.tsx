@@ -37,7 +37,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate, isPlayingAudio
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+        <div className="max-w-[1580px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
           <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-xs text-[#E5B567] text-xs font-semibold uppercase tracking-wider mb-3">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Giữ mạch di sản – Khơi mạch tương lai</span>
@@ -51,7 +51,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate, isPlayingAudio
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 space-y-16">
+      <div className="max-w-[1580px] mx-auto px-4 sm:px-6 lg:px-8 pt-12 space-y-16">
         
         {/* 2. Story: Khởi nguồn di sản */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
