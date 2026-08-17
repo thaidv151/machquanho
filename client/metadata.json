@@ -1,0 +1,8 @@
+{
+  "name": "Mạch Quan Họ",
+  "description": "Cổng thông tin & Nhật ký nghiên cứu di sản Dân ca Quan họ Bắc Ninh và Hệ thống Quản trị nội dung",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
