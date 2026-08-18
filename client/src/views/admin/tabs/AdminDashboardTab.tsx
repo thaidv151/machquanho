@@ -6,7 +6,7 @@ interface AdminDashboardTabProps {
   articles: Article[];
   users: AdminUser[];
   onOpenNewArticle: () => void;
-  onSelectTab: (tab: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner') => void;
+  onSelectTab: (tab: any) => void;
 }
 
 export const AdminDashboardTab: React.FC<AdminDashboardTabProps> = ({

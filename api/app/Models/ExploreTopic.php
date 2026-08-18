@@ -13,6 +13,7 @@ class ExploreTopic extends Model
         'title',
         'subtitle',
         'description',
+        'content',
         'image',
         'badge',
         'details',

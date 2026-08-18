@@ -157,7 +157,7 @@ export const AdminArticlesTab: React.FC<AdminArticlesTabProps> = ({
                     <td className="p-4 text-right">
                       <div className="flex items-center justify-end space-x-2">
                         <button
-                          onClick={() => onNavigate({ type: 'article-detail', articleId: art.id })}
+                          onClick={() => onNavigate({ type: 'article-detail', articleId: art.slug || art.id })}
                           className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           title="Xem trước"
                         >

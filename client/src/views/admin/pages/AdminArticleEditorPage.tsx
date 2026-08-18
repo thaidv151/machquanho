@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Loader2, Save, Send, Plus, Check } from 'lucide-react';
+import { ArrowLeft, Loader2, Save, Send, Plus, Check, Tag } from 'lucide-react';
 import { Article, ArticleCategory, CategoryInfo } from '../../../types';
 import { ImageUploader } from '../../../components/ImageUploader';
 import Editor from '../../../components/Editor';
@@ -312,6 +312,32 @@ export const AdminArticleEditorPage: React.FC<AdminArticleEditorPageProps> = ({
                 className="w-full p-2.5 bg-[#FAF8F5] border border-[#D9CEBA] rounded-xl text-xs text-[#2D241E]"
                 placeholder="VD: Hát giao duyên: Cây Trúc Xinh"
               />
+            </div>
+          </div>
+
+          {/* Tags Configuration */}
+          <div className="bg-white p-6 rounded-2xl border border-[#E8DFC8] shadow-xs space-y-4">
+            <h3 className="font-serif-culture font-bold text-sm text-[#2D241E] border-b border-[#EDE5D8] pb-3 flex items-center justify-between">
+              <span>Thẻ từ khóa (Tags)</span>
+              <Tag className="w-4 h-4 text-[#8C2320]" />
+            </h3>
+            <div>
+              <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                Các từ khóa (phân cách bởi dấu phẩy)
+              </label>
+              <input
+                type="text"
+                value={Array.isArray(formData.tags) ? formData.tags.join(', ') : ''}
+                onChange={(e) => {
+                  const tagList = e.target.value.split(',').map((t) => t.trim()).filter(Boolean);
+                  setFormData({ ...formData, tags: tagList });
+                }}
+                className="w-full p-2.5 bg-[#FAF8F5] border border-[#D9CEBA] rounded-xl text-xs text-[#2D241E]"
+                placeholder="VD: Thanh nhạc, Vang Rền Nền Nẩy, Kỹ thuật hát"
+              />
+              <p className="text-[11px] text-[#7A6B60] mt-1.5">
+                Phân cách bằng dấu phẩy. Các thẻ tag này sẽ hiển thị ở cuối bài viết và cho phép người đọc bấm vào để lọc bài viết.
+              </p>
             </div>
           </div>
 

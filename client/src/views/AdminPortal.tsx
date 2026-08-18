@@ -18,7 +18,8 @@ import { AdminResearchTab } from './admin/tabs/AdminResearchTab';
 import { AdminFooterTab } from './admin/tabs/AdminFooterTab';
 import { AdminSeoTab } from './admin/tabs/AdminSeoTab';
 import { AdminScriptsTab } from './admin/tabs/AdminScriptsTab';
-import { HeaderNavItem, ResearchEntry, SiteFooterConfig, SiteSeoConfig } from '../types';
+import { AdminExploreTab } from './admin/tabs/AdminExploreTab';
+import { HeaderNavItem, ResearchEntry, ExploreTopic, SiteFooterConfig, SiteSeoConfig } from '../types';
 
 import { UserFormModal } from './admin/modals/UserFormModal';
 import { CategoryFormModal } from './admin/modals/CategoryFormModal';
@@ -26,17 +27,19 @@ import { AdminArticleEditorPage } from './admin/pages/AdminArticleEditorPage';
 import { AdminResearchEditorPage } from './admin/pages/AdminResearchEditorPage';
 
 interface AdminPortalProps {
-  section: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'footer' | 'seo' | 'scripts';
+  section: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'footer' | 'seo' | 'scripts';
   articles: Article[];
   users: AdminUser[];
   categories: CategoryInfo[];
   researchEntries?: ResearchEntry[];
+  exploreTopics?: ExploreTopic[];
   siteConfig: SiteConfig;
   currentUser?: AdminUser | null;
   onUpdateArticles: (articles: Article[]) => void;
   onUpdateUsers: (users: AdminUser[]) => void;
   onUpdateCategories: (categories: CategoryInfo[]) => void;
   onUpdateResearchEntries?: (entries: ResearchEntry[]) => void;
+  onUpdateExploreTopics?: (topics: ExploreTopic[]) => void;
   onUpdateSiteConfig: (config: SiteConfig) => void;
   onLogout: () => void;
   onNavigate: (view: ViewState) => void;
@@ -48,17 +51,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   users,
   categories,
   researchEntries = [],
+  exploreTopics = [],
   siteConfig,
   currentUser,
   onUpdateArticles,
   onUpdateUsers,
   onUpdateCategories,
   onUpdateResearchEntries = () => {},
+  onUpdateExploreTopics = () => {},
   onUpdateSiteConfig,
   onLogout,
   onNavigate,
 }) => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'footer' | 'seo' | 'scripts'>(section || 'dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'footer' | 'seo' | 'scripts'>(section || 'dashboard');
   const [toastState, setToastState] = useState<{ message: string; type: ToastType } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -443,6 +448,47 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     }
   };
 
+  const handleCreateExploreTopic = async (topic: Partial<ExploreTopic>) => {
+    try {
+      setIsSubmitting(true);
+      const created = await apiService.adminCreateExploreTopic(topic);
+      const updated = [created, ...exploreTopics];
+      onUpdateExploreTopics(updated);
+      showToast('Thêm chuyên đề khám phá thành công!', 'success');
+    } catch (err) {
+      showToast('Lỗi khi thêm chuyên đề khám phá', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateExploreTopic = async (id: string, topic: Partial<ExploreTopic>) => {
+    try {
+      setIsSubmitting(true);
+      const updatedItem = await apiService.adminUpdateExploreTopic(id, topic);
+      const updatedList = exploreTopics.map((t) => (t.id === id ? updatedItem : t));
+      onUpdateExploreTopics(updatedList);
+      showToast('Cập nhật chuyên đề khám phá thành công!', 'success');
+    } catch (err) {
+      showToast('Lỗi khi cập nhật chuyên đề khám phá', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteExploreTopic = (id: string) => {
+    requestConfirm('Bạn có chắc chắn muốn xóa chuyên đề khám phá này?', async () => {
+      try {
+        await apiService.adminDeleteExploreTopic(id);
+        const updatedList = exploreTopics.filter((t) => t.id !== id);
+        onUpdateExploreTopics(updatedList);
+        showToast('Xóa chuyên đề khám phá thành công!', 'success');
+      } catch (err) {
+        showToast('Lỗi khi xóa chuyên đề khám phá', 'error');
+      }
+    });
+  };
+
   // Filtered Lists
   const filteredArticles = articles.filter(a => {
     const matchesCat = articleCategoryFilter === 'Tất cả' || a.category === articleCategoryFilter;
@@ -636,6 +682,16 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               onOpenEditResearch={handleOpenEditResearch}
               showToast={showToast}
               onRequestConfirm={(opts) => setConfirmState({ isOpen: true, ...opts })}
+            />
+          )}
+
+          {activeTab === 'explore' && (
+            <AdminExploreTab
+              exploreTopics={exploreTopics}
+              isSubmitting={isSubmitting}
+              onCreateTopic={handleCreateExploreTopic}
+              onUpdateTopic={handleUpdateExploreTopic}
+              onDeleteTopic={handleDeleteExploreTopic}
             />
           )}
 

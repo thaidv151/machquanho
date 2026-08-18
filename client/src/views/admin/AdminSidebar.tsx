@@ -3,11 +3,11 @@ import { LayoutDashboard, FileText, Users, FolderKanban, Settings, ArrowLeft, Co
 import { ViewState } from '../../types';
 
 interface AdminSidebarProps {
-  activeTab: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'footer' | 'seo' | 'scripts';
+  activeTab: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'footer' | 'seo' | 'scripts';
   articlesCount: number;
   usersCount: number;
   categoriesCount: number;
-  onSelectTab: (tab: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'footer' | 'seo' | 'scripts') => void;
+  onSelectTab: (tab: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'footer' | 'seo' | 'scripts') => void;
   onNavigate: (view: ViewState) => void;
 }
 
@@ -26,6 +26,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         { id: 'dashboard' as const, label: 'Bảng tổng quan', icon: LayoutDashboard },
         { id: 'articles' as const, label: 'Quản lý tin bài', icon: FileText, badge: articlesCount },
         { id: 'research' as const, label: 'Nhật ký nghiên cứu', icon: BookOpen },
+        { id: 'explore' as const, label: 'Chuyên đề Khám phá', icon: Compass },
         { id: 'categories' as const, label: 'Quản lý chuyên mục', icon: FolderKanban, badge: categoriesCount },
       ],
     },

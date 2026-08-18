@@ -1,0 +1,29 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Reverse Proxy / Pass-through API requests to backend domain
+    <IfModule mod_proxy.c>
+        RewriteRule ^api/(.*)$ https://apimachquanho.blueflare.site/api/$1 [P,L]
+    </IfModule>
+
+    # If requested file or directory exists, serve directly
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Fallback to index.html for React SPA Single Page Application routing
+    RewriteRule ^ index.html [L]
+</IfModule>
+
+# Enable Gzip Compression for Fast Page Loads
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css application/json application/javascript text/xml application/xml text/javascript application/x-javascript
+</IfModule>
+
+# Browser Caching Rules for Static Assets
+<IfModule mod_headers.c>
+    <FilesMatch "\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$">
+        Header set Cache-Control "max-age=31536000, public"
+    </FilesMatch>
+</IfModule>

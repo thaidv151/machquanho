@@ -407,12 +407,14 @@ export default function App() {
             users={users}
             categories={categories}
             researchEntries={researchEntries}
+            exploreTopics={exploreTopics}
             siteConfig={siteConfig}
             currentUser={currentUser}
             onUpdateArticles={setArticles}
             onUpdateUsers={setUsers}
             onUpdateCategories={setCategories}
             onUpdateResearchEntries={setResearchEntries}
+            onUpdateExploreTopics={setExploreTopics}
             onUpdateSiteConfig={setSiteConfig}
             onNavigate={handleNavigate}
             onLogout={handleLogout}

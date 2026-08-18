@@ -225,11 +225,11 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
         {/* Tags */}
         <div className="flex flex-wrap items-center gap-2">
           <Tag className="w-4 h-4 text-[#8C2320]" />
-          {article.tags.map((tag, idx) => (
+          {(article.tags && article.tags.length > 0 ? article.tags : ['Quan họ Bắc Ninh', 'Di sản văn hóa', 'Kinh Bắc']).map((tag, idx) => (
             <span
               key={idx}
               onClick={() => onNavigate({ type: 'news', searchQuery: tag })}
-              className="text-xs px-3 py-1 rounded-full bg-white border border-[#D9CEBA] text-[#5C4D44] hover:border-[#8C2320] hover:text-[#8C2320] transition-colors cursor-pointer"
+              className="text-xs px-3.5 py-1 rounded-full bg-white border border-[#D9CEBA] text-[#5C4D44] hover:border-[#8C2320] hover:text-[#8C2320] hover:bg-[#FAF6F0] font-medium transition-all cursor-pointer shadow-2xs"
             >
               #{tag}
             </span>
@@ -270,7 +270,7 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
             {relatedArticles.slice(0, 3).map((rel) => (
               <div
                 key={rel.id}
-                onClick={() => onNavigate({ type: 'article-detail', articleId: rel.id })}
+                onClick={() => onNavigate({ type: 'article-detail', articleId: rel.slug || rel.id })}
                 className="bg-white rounded-xl overflow-hidden border border-[#E8DFC8] hover:border-[#8C2320] hover:shadow-md transition-all group cursor-pointer flex flex-col justify-between"
               >
                 <div className="h-36 overflow-hidden bg-[#2D1614]">

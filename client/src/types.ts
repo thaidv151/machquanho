@@ -65,6 +65,7 @@ export interface ExploreTopic {
   title: string;
   subtitle: string;
   description: string;
+  content?: string;
   image: string;
   badge: string;
   details: string[];
@@ -244,4 +245,4 @@ export type ViewState =
   | { type: 'research-diary'; selectedId?: string }
   | { type: 'about' }
   | { type: 'explore-detail'; topicId: string }
-  | { type: 'admin'; section: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'footer' | 'seo' | 'scripts' };
+  | { type: 'admin'; section: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'footer' | 'seo' | 'scripts' };
