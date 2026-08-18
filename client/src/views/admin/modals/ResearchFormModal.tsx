@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Loader2, Plus, Trash2 } from 'lucide-react';
 import { ResearchEntry } from '../../../types';
 import { ImageUploader } from '../../../components/ImageUploader';
+import Editor from '../../../components/Editor';
 
 interface ResearchFormModalProps {
   isOpen: boolean;
@@ -161,12 +162,10 @@ export const ResearchFormModal: React.FC<ResearchFormModalProps> = ({
 
           <div>
             <label className="block text-xs font-bold text-[#4A3B32] mb-1">Nội dung báo cáo điền dã chi tiết</label>
-            <textarea
-              rows={4}
+            <Editor
               value={formData.content || ''}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFC8] text-xs focus:outline-none focus:border-[#114D3A]"
-              placeholder="Nội dung báo cáo chi tiết..."
+              onChange={(val) => setFormData({ ...formData, content: val })}
+              minHeight={240}
             />
           </div>
 

@@ -3,7 +3,7 @@ import { LogOut } from 'lucide-react';
 import { AdminUser } from '../../types';
 
 interface AdminHeaderProps {
-  activeTab: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus';
+  activeTab: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'footer' | 'seo' | 'scripts';
   currentUser?: AdminUser | null;
   onLogout?: () => void;
 }

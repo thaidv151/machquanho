@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Article, ArticleCategory, ViewState } from '../types';
 import { Search, Calendar, Clock, ArrowRight, Sparkles, Filter, Music, ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -20,6 +20,15 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 6;
 
+  // Sync state when props change via URL navigation
+  useEffect(() => {
+    setSelectedCategory(initialCategory || 'Tất cả');
+  }, [initialCategory]);
+
+  useEffect(() => {
+    setSearchQuery(initialSearchQuery || '');
+  }, [initialSearchQuery]);
+
   const categories = ['Tất cả', 'Sự kiện', 'Chính sách', 'Góc nhìn', 'Hoạt động', 'Nghệ nhân', 'Khám phá'];
 
   // Filter articles
@@ -30,13 +39,15 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
     const matchesSearch = !searchQuery.trim() || 
       article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       article.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      article.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
+      (article.author && article.author.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (article.tags && article.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase())));
     return matchesCategory && matchesSearch;
   });
 
-  // Featured article (first featured or first item)
-  const featuredArticle = filtered.find(a => a.featured) || filtered[0];
-  const gridArticles = filtered.filter(a => a.id !== featuredArticle?.id);
+  // Featured article only on default view (no search query & 'Tất cả' category)
+  const isDefaultView = selectedCategory === 'Tất cả' && !searchQuery.trim();
+  const featuredArticle = isDefaultView ? (filtered.find(a => a.featured) || filtered[0]) : null;
+  const gridArticles = featuredArticle ? filtered.filter(a => a.id !== featuredArticle.id) : filtered;
 
   // Pagination logic for grid articles
   const totalPages = Math.ceil(gridArticles.length / itemsPerPage) || 1;
@@ -60,7 +71,7 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="max-w-[1580px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center sm:text-left">
+        <div className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center sm:text-left">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-xs text-[#E5B567] text-xs font-semibold uppercase tracking-wider mb-3">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Thông tin & Truyền thông</span>
@@ -74,7 +85,7 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
         </div>
       </div>
 
-      <div className="max-w-[1580px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+      <div className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
         
         {/* Controls Bar: Category Pills + Search */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#E8DFC8]">

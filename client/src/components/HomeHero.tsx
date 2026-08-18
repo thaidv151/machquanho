@@ -328,7 +328,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
       )}
 
       {/* Hero Content Container - Aligned higher at ~2/8 from top */}
-      <div className={`relative z-10 max-w-[1580px] mx-auto px-4 sm:px-6 lg:px-8 ${getHeightClass()} flex items-start pt-14 sm:pt-20 lg:pt-24 pb-12`}>
+      <div className={`relative z-10 max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 ${getHeightClass()} flex items-start pt-14 sm:pt-20 lg:pt-24 pb-12`}>
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
           {/* Main Floating Content (Staggered Sequential Entrance Animations) */}

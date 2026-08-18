@@ -1,4 +1,5 @@
 import React from 'react';
+import { SocialPlatformIcon } from './SocialPlatformIcon';
 import { ViewState, SiteConfig, SiteFooterConfig } from '../types';
 import { Mail, Phone, MapPin, Facebook, Youtube, Send } from 'lucide-react';
 import { DEFAULT_SITE_CONFIG } from '../data/mockData';
@@ -30,34 +31,42 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, siteConfig }) => {
 
   return (
     <footer id="site-footer" className="bg-[#092B20] text-[#F2E9DD] pt-12 pb-6 border-t-2 border-[#114D3A]">
-      <div className="max-w-[1580px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Main 4-Column Layout with Vertical Border Lines */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 pb-10">
+        {/* Main 4-Column Balanced Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10 pb-10">
           
           {/* Column 1: Brand Info (lg:col-span-4) */}
-          <div className="lg:col-span-4 space-y-3.5 pr-0 lg:pr-6 border-b lg:border-b-0 lg:border-r border-white/10 pb-6 lg:pb-0">
+          <div className="lg:col-span-4 space-y-3.5">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full bg-[#114D3A] flex items-center justify-center text-[#D4A25A] font-serif-culture font-bold text-lg border border-[#D4A25A]/40 shadow-xs shrink-0">
-                MQ
-              </div>
+              {siteConfig.logoType === 'image' && siteConfig.logoImageUrl ? (
+                <img 
+                  src={siteConfig.logoImageUrl} 
+                  alt={siteConfig.logoText || 'Logo'} 
+                  className="h-12 max-h-12 object-contain shrink-0 rounded-lg border border-[#D4A25A]/30 bg-white/5 p-1" 
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-[#114D3A] flex items-center justify-center text-[#D4A25A] font-serif-culture font-bold text-lg border border-[#D4A25A]/40 shadow-xs shrink-0">
+                  MQ
+                </div>
+              )}
               <div>
                 <h3 className="font-serif-culture text-xl font-bold tracking-wide text-white">
-                  {siteConfig.siteName || 'MẠCH QUAN HỌ'}
+                  {siteConfig.siteName || siteConfig.logoText || 'MẠCH QUAN HỌ'}
                 </h3>
                 <p className="text-xs text-[#D4A25A] font-medium tracking-wide">
                   {footerConfig.tagline}
                 </p>
               </div>
             </div>
-            <p className="text-xs text-[#F2E9DD]/80 leading-relaxed font-normal">
+            <p className="text-xs text-[#F2E9DD]/80 leading-relaxed font-normal max-w-sm">
               {footerConfig.description}
             </p>
           </div>
 
-          {/* Column 2: Quick Links (lg:col-span-3) */}
-          <div className="lg:col-span-3 space-y-3 px-0 lg:px-6 border-b lg:border-b-0 lg:border-r border-white/10 pb-6 lg:pb-0">
-            <h4 className="font-serif-culture text-sm font-bold text-[#D4A25A] tracking-wider uppercase">
+          {/* Column 2: Quick Links (lg:col-span-2) */}
+          <div className="lg:col-span-2 space-y-3">
+            <h4 className="font-serif-culture text-xs font-bold text-[#D4A25A] tracking-wider uppercase">
               {footerConfig.quickLinksTitle || 'LIÊN KẾT NHANH'}
             </h4>
             <ul className="space-y-2 text-xs">
@@ -74,9 +83,9 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, siteConfig }) => {
             </ul>
           </div>
 
-          {/* Column 3: Social Links / Platforms (lg:col-span-2) */}
-          <div className="lg:col-span-2 space-y-3 px-0 lg:px-6 border-b lg:border-b-0 lg:border-r border-white/10 pb-6 lg:pb-0">
-            <h4 className="font-serif-culture text-sm font-bold text-[#D4A25A] tracking-wider uppercase">
+          {/* Column 3: Social Links / Platforms (lg:col-span-3) */}
+          <div className="lg:col-span-3 space-y-3">
+            <h4 className="font-serif-culture text-xs font-bold text-[#D4A25A] tracking-wider uppercase">
               {footerConfig.socialLinksTitle || 'KẾT NỐI VỚI CHÚNG TÔI'}
             </h4>
             <div className="flex flex-wrap items-center gap-2.5 pt-1">
@@ -97,27 +106,15 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, siteConfig }) => {
                   className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#D4A25A] hover:text-[#092B20] text-white flex items-center justify-center transition-all cursor-pointer border border-white/15 overflow-hidden group shrink-0"
                   title={item.name}
                 >
-                  {item.iconUrl ? (
-                    <img src={item.iconUrl} alt={item.name} className="w-5 h-5 object-contain group-hover:brightness-0 transition-all" />
-                  ) : item.iconType === 'facebook' ? (
-                    <Facebook className="w-4 h-4" />
-                  ) : item.iconType === 'youtube' ? (
-                    <Youtube className="w-4 h-4" />
-                  ) : item.iconType === 'tiktok' ? (
-                    <span className="text-xs font-bold">d</span>
-                  ) : item.iconType === 'email' ? (
-                    <Mail className="w-4 h-4" />
-                  ) : (
-                    <span className="text-xs font-bold">{item.name.charAt(0).toUpperCase()}</span>
-                  )}
+                  <SocialPlatformIcon iconType={item.iconType} iconUrl={item.iconUrl} name={item.name} className="w-4 h-4" />
                 </a>
               ))}
             </div>
           </div>
 
           {/* Column 4: Contact Info (lg:col-span-3) */}
-          <div className="lg:col-span-3 space-y-3 pl-0 lg:pl-6">
-            <h4 className="font-serif-culture text-sm font-bold text-[#D4A25A] tracking-wider uppercase">
+          <div className="lg:col-span-3 space-y-3">
+            <h4 className="font-serif-culture text-xs font-bold text-[#D4A25A] tracking-wider uppercase">
               {footerConfig.contactTitle || 'THÔNG TIN LIÊN HỆ'}
             </h4>
             <ul className="space-y-2.5 text-xs text-[#F2E9DD]/85">

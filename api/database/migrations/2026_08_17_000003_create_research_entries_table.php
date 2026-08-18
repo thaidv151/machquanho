@@ -21,6 +21,7 @@ return new class extends Migration
             $table->json('images')->nullable();
             $table->string('audio_title', 255)->nullable();
             $table->string('researcher', 100)->default('Nhà nghiên cứu');
+            $table->integer('sort_order')->default(0);
             $table->timestamps();
         });
     }

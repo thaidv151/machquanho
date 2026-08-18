@@ -10,7 +10,7 @@ class ResearchEntryController extends Controller
 {
     public function index()
     {
-        $entries = ResearchEntry::orderBy('id', 'desc')->get();
+        $entries = ResearchEntry::orderBy('sort_order', 'asc')->orderBy('id', 'desc')->get();
         return response()->json([
             'status' => 'success',
             'data' => $entries,
@@ -27,7 +27,7 @@ class ResearchEntryController extends Controller
                   ->orWhere('summary', 'LIKE', "%{$keyword}%");
         }
 
-        $entries = $query->orderBy('id', 'desc')->get();
+        $entries = $query->orderBy('sort_order', 'asc')->orderBy('id', 'desc')->get();
 
         return response()->json([
             'status' => 'success',
@@ -38,7 +38,18 @@ class ResearchEntryController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $data = $request->all();
+        if (isset($data['sortOrder']) && !isset($data['sort_order'])) {
+            $data['sort_order'] = (int) $data['sortOrder'];
+        }
+        if (isset($data['iconType']) && !isset($data['icon_type'])) {
+            $data['icon_type'] = $data['iconType'];
+        }
+        if (isset($data['audioTitle']) && !isset($data['audio_title'])) {
+            $data['audio_title'] = $data['audioTitle'];
+        }
+
+        $validated = validator($data, [
             'title' => 'required|string|max:191',
             'date' => 'nullable|string',
             'location' => 'nullable|string',
@@ -50,7 +61,8 @@ class ResearchEntryController extends Controller
             'images' => 'nullable',
             'audio_title' => 'nullable|string',
             'researcher' => 'nullable|string',
-        ]);
+            'sort_order' => 'nullable|integer',
+        ])->validate();
 
         $entry = ResearchEntry::create($validated);
 
@@ -65,7 +77,18 @@ class ResearchEntryController extends Controller
     {
         $entry = ResearchEntry::findOrFail($id);
 
-        $validated = $request->validate([
+        $data = $request->all();
+        if (isset($data['sortOrder'])) {
+            $data['sort_order'] = (int) $data['sortOrder'];
+        }
+        if (isset($data['iconType'])) {
+            $data['icon_type'] = $data['iconType'];
+        }
+        if (isset($data['audioTitle'])) {
+            $data['audio_title'] = $data['audioTitle'];
+        }
+
+        $validated = validator($data, [
             'title' => 'sometimes|required|string|max:191',
             'date' => 'nullable|string',
             'location' => 'nullable|string',
@@ -77,7 +100,8 @@ class ResearchEntryController extends Controller
             'images' => 'nullable',
             'audio_title' => 'nullable|string',
             'researcher' => 'nullable|string',
-        ]);
+            'sort_order' => 'nullable|integer',
+        ])->validate();
 
         $entry->update($validated);
 

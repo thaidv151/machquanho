@@ -1,10 +1,4 @@
-export type ArticleCategory = 
-  | 'Sự kiện'
-  | 'Chính sách'
-  | 'Góc nhìn'
-  | 'Hoạt động'
-  | 'Nghệ nhân'
-  | 'Khám phá';
+export type ArticleCategory = string;
 
 export interface Article {
   id: string;
@@ -49,6 +43,7 @@ export interface ResearchEntry {
   images: string[];
   audioTitle?: string;
   researcher: string;
+  sortOrder?: number;
 }
 
 export interface Artisan {

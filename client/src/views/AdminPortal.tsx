@@ -20,9 +20,10 @@ import { AdminSeoTab } from './admin/tabs/AdminSeoTab';
 import { AdminScriptsTab } from './admin/tabs/AdminScriptsTab';
 import { HeaderNavItem, ResearchEntry, SiteFooterConfig, SiteSeoConfig } from '../types';
 
-import { ArticleFormModal } from './admin/modals/ArticleFormModal';
 import { UserFormModal } from './admin/modals/UserFormModal';
 import { CategoryFormModal } from './admin/modals/CategoryFormModal';
+import { AdminArticleEditorPage } from './admin/pages/AdminArticleEditorPage';
+import { AdminResearchEditorPage } from './admin/pages/AdminResearchEditorPage';
 
 interface AdminPortalProps {
   section: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'footer' | 'seo' | 'scripts';
@@ -124,52 +125,67 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     readTime: '4 phút đọc'
   });
 
+  // Full Page Editor State
+  const [editorView, setEditorView] = useState<{
+    type: 'none' | 'article' | 'research';
+    editingItem?: any;
+  }>({ type: 'none' });
+
   const categoriesList = categories.map(c => c.name);
 
   const handleOpenNewArticle = () => {
-    setEditingArticle(null);
-    setArticleFormData({
-      title: '',
-      slug: '',
-      category: 'Sự kiện',
-      excerpt: '',
-      content: [''],
-      coverImage: 'https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1200&q=80',
-      author: currentUser?.name || 'Ban biên tập Mạch Quan Họ',
-      authorRole: 'Biên tập viên',
-      status: 'Đã đăng',
-      tags: ['Quan họ', 'Kinh Bắc'],
-      readTime: '4 phút đọc',
-      views: 0
-    });
-    setIsArticleModalOpen(true);
+    setEditorView({ type: 'article', editingItem: null });
   };
 
   const handleOpenEditArticle = (art: Article) => {
-    setEditingArticle(art);
-    setArticleFormData({ ...art });
-    setIsArticleModalOpen(true);
+    setEditorView({ type: 'article', editingItem: art });
   };
 
-  const handleSaveArticle = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!articleFormData.title?.trim()) return;
-
+  const handleSaveArticleFromEditor = async (formData: Partial<Article>) => {
     setIsSubmitting(true);
     try {
-      if (editingArticle) {
-        await apiService.adminUpdateArticle(editingArticle.id, articleFormData);
-        showToast('Đã cập nhật bài viết!');
+      if (formData.id) {
+        await apiService.adminUpdateArticle(formData.id, formData);
+        showToast('Cập nhật bài viết thành công!', 'success');
       } else {
-        await apiService.adminCreateArticle(articleFormData);
-        showToast('Đã thêm bài viết mới!');
+        await apiService.adminCreateArticle(formData);
+        showToast('Thêm bài viết mới thành công!', 'success');
       }
       const refreshed = await apiService.adminGetArticles();
       onUpdateArticles(refreshed);
-      setIsArticleModalOpen(false);
-    } catch (err) {
+      setEditorView({ type: 'none' });
+    } catch (err: any) {
       console.error('Save article error:', err);
-      showToast('Có lỗi xảy ra khi lưu bài viết.', 'error');
+      showToast(err?.response?.data?.message || 'Có lỗi xảy ra khi lưu bài viết', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOpenNewResearch = () => {
+    setEditorView({ type: 'research', editingItem: null });
+  };
+
+  const handleOpenEditResearch = (entry: ResearchEntry) => {
+    setEditorView({ type: 'research', editingItem: entry });
+  };
+
+  const handleSaveResearchFromEditor = async (formData: Partial<ResearchEntry>) => {
+    setIsSubmitting(true);
+    try {
+      if (formData.id) {
+        await apiService.adminUpdateResearchEntry(formData.id, formData);
+        showToast('Cập nhật ghi chép nghiên cứu thành công!', 'success');
+      } else {
+        await apiService.adminCreateResearchEntry(formData);
+        showToast('Tạo mới ghi chép nghiên cứu thành công!', 'success');
+      }
+      const refreshed = await apiService.adminGetResearchEntries();
+      onUpdateResearchEntries(refreshed);
+      setEditorView({ type: 'none' });
+    } catch (err: any) {
+      console.error('Save research error:', err);
+      showToast(err?.response?.data?.message || 'Có lỗi xảy ra khi lưu nhật ký', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -479,6 +495,30 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     }
   };
 
+  if (editorView.type === 'article') {
+    return (
+      <AdminArticleEditorPage
+        editingArticle={editorView.editingItem}
+        categoriesList={categoriesList}
+        isSubmitting={isSubmitting}
+        onSave={handleSaveArticleFromEditor}
+        onBack={() => setEditorView({ type: 'none' })}
+        onCategoryCreated={(newCat) => onUpdateCategories([...categories, newCat])}
+      />
+    );
+  }
+
+  if (editorView.type === 'research') {
+    return (
+      <AdminResearchEditorPage
+        editingEntry={editorView.editingItem}
+        isSubmitting={isSubmitting}
+        onSave={handleSaveResearchFromEditor}
+        onBack={() => setEditorView({ type: 'none' })}
+      />
+    );
+  }
+
   return (
     <div id="admin-portal-root" className="min-h-screen bg-[#F1EDE8] flex flex-col lg:flex-row">
       
@@ -592,6 +632,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             <AdminResearchTab
               researchEntries={researchEntries}
               onUpdateResearchEntries={onUpdateResearchEntries}
+              onOpenNewResearch={handleOpenNewResearch}
+              onOpenEditResearch={handleOpenEditResearch}
               showToast={showToast}
               onRequestConfirm={(opts) => setConfirmState({ isOpen: true, ...opts })}
             />
@@ -624,16 +666,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       </div>
 
       {/* Modals */}
-      <ArticleFormModal
-        isOpen={isArticleModalOpen}
-        editingArticle={editingArticle}
-        articleFormData={articleFormData}
-        categoriesList={categoriesList}
-        isSubmitting={isSubmitting}
-        setArticleFormData={setArticleFormData}
-        onClose={() => setIsArticleModalOpen(false)}
-        onSubmit={handleSaveArticle}
-      />
 
       <UserFormModal
         isOpen={isUserModalOpen}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Article, ViewState } from '../types';
-import { Calendar, Clock, ArrowLeft, Share2, Bookmark, Music, Play, Pause, Eye, Heart, MessageSquare, Tag, Sparkles, ArrowRight } from 'lucide-react';
+import { Calendar, Clock, ArrowLeft, Share2, Bookmark, Music, Play, Pause, Eye, Tag, Sparkles, ArrowRight } from 'lucide-react';
 import { audioPlayer } from '../utils/audioSynth';
 
 interface ArticleDetailPageProps {
@@ -17,21 +17,13 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
   isPlayingAudio
 }) => {
   const [bookmarked, setBookmarked] = useState(false);
-  const [likes, setLikes] = useState(() => (article?.views && article.views > 100 ? Math.floor(article.views / 12) : 24));
-  const [hasLiked, setHasLiked] = useState(false);
-  const [commentText, setCommentText] = useState('');
-  const [comments, setComments] = useState<{ name: string; date: string; content: string }[]>([
-    {
-      name: 'Trần Văn Hùng (CLB Quan họ Kinh Bắc)',
-      date: '15/02/2024',
-      content: 'Bài viết rất công phu và sâu sắc, thể hiện đúng cái hồn cốt lề lối của người Quan họ xưa. Rất mong dự án Mạch Quan Họ tiếp tục số hóa thêm nhiều tư liệu quý.'
-    },
-    {
-      name: 'Nguyễn Thị Mai Lan',
-      date: '16/02/2024',
-      content: 'Nghe làn điệu phát trên trang mà bồi hồi xúc động, như được hòa mình vào không khí ngày hội Lim đầu xuân.'
+
+  const handleShare = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Đã sao chép đường dẫn bài viết vào bộ nhớ tạm!');
     }
-  ]);
+  };
 
   if (!article) {
     return (
@@ -54,35 +46,6 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
       </div>
     );
   }
-
-  const handleLike = () => {
-    if (!hasLiked) {
-      setLikes(likes + 1);
-      setHasLiked(true);
-    }
-  };
-
-  const handleAddComment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (commentText.trim()) {
-      setComments([
-        {
-          name: 'Độc giả yêu Quan họ',
-          date: 'Vừa xong',
-          content: commentText.trim()
-        },
-        ...comments
-      ]);
-      setCommentText('');
-    }
-  };
-
-  const handleShare = () => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Đã sao chép đường dẫn bài viết vào bộ nhớ tạm!');
-    }
-  };
 
   return (
     <article id="article-detail-view" className="min-h-screen bg-[#FAF8F5] pb-24">
@@ -212,50 +175,23 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
         )}
       </div>
 
-      {/* 4. Audio Player Widget inside Article (if track available) */}
-      {article.audioTitle && (
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 my-8">
-          <div className="bg-gradient-to-r from-[#3A1816] to-[#591E1A] text-white p-5 rounded-2xl shadow-md border border-[#8C2320] flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center space-x-3.5">
-              <div className="w-12 h-12 rounded-full bg-[#E5B567] text-[#3A1816] flex items-center justify-center shrink-0 shadow-xs">
-                <Music className="w-6 h-6" />
-              </div>
-              <div>
-                <div className="text-[10px] uppercase font-bold text-[#E5B567] tracking-wider">
-                  Trải nghiệm thanh âm di sản
-                </div>
-                <h4 className="font-serif-culture font-bold text-sm sm:text-base text-white">
-                  {article.audioTitle}
-                </h4>
-                <p className="text-xs text-[#D9C4B7]">Thời lượng: {article.audioDuration || '04:30'}</p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => audioPlayer.toggle(article.audioTitle!)}
-              className="px-6 py-2.5 rounded-full bg-[#E5B567] hover:bg-[#F3CE8D] text-[#3A1816] font-bold text-xs flex items-center space-x-2 transition-transform hover:scale-105 cursor-pointer shrink-0"
-            >
-              {isPlayingAudio ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
-              <span>{isPlayingAudio ? 'Tạm dừng' : 'Nghe diễn xướng'}</span>
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* 5. Rich Body Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 space-y-6 text-[#382D26] leading-relaxed text-base sm:text-lg">
         
-        {article.content.map((paragraph, index) => (
-          <p key={index} className="leading-relaxed">
-            {index === 0 ? (
-              <span className="first-letter:font-serif-culture first-letter:text-5xl first-letter:font-bold first-letter:text-[#8C2320] first-letter:float-left first-letter:mr-3 first-letter:leading-none">
-                {paragraph}
-              </span>
-            ) : (
-              paragraph
-            )}
-          </p>
-        ))}
+        {Array.isArray(article.content) ? (
+          article.content.map((paragraph, index) => (
+            <div
+              key={index}
+              className="leading-relaxed prose max-w-none text-[#382D26]"
+              dangerouslySetInnerHTML={{ __html: paragraph }}
+            />
+          ))
+        ) : (
+          <div
+            className="leading-relaxed prose max-w-none text-[#382D26]"
+            dangerouslySetInnerHTML={{ __html: article.content || '' }}
+          />
+        )}
 
         {/* Pull Quote */}
         {article.quote && (
@@ -300,69 +236,20 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
           ))}
         </div>
 
-        {/* Like & Share */}
+        {/* Share Button */}
         <div className="flex items-center space-x-3">
-          <button
-            onClick={handleLike}
-            className={`flex items-center space-x-1.5 px-4 py-1.5 rounded-full text-xs font-bold border transition-colors cursor-pointer ${
-              hasLiked ? 'bg-[#8C2320] text-white border-[#8C2320]' : 'bg-white text-[#4A3B32] border-[#D9CEBA] hover:text-[#8C2320]'
-            }`}
-          >
-            <Heart className={`w-3.5 h-3.5 ${hasLiked ? 'fill-current' : ''}`} />
-            <span>Thích ({likes})</span>
-          </button>
-          
           <button
             onClick={handleShare}
             className="flex items-center space-x-1.5 px-4 py-1.5 rounded-full text-xs font-bold bg-white text-[#4A3B32] border border-[#D9CEBA] hover:text-[#8C2320] transition-colors cursor-pointer"
           >
             <Share2 className="w-3.5 h-3.5" />
-            <span>Chia sẻ</span>
+            <span>Chia sẻ bài viết</span>
           </button>
         </div>
 
       </div>
 
-      {/* 7. Comments & Reflections Box */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-10 pb-6 space-y-6">
-        <div className="flex items-center space-x-2 text-[#2D241E]">
-          <MessageSquare className="w-5 h-5 text-[#8C2320]" />
-          <h3 className="font-serif-culture text-xl font-bold">Cảm nghĩ & Bình luận ({comments.length})</h3>
-        </div>
 
-        {/* Comment Form */}
-        <form onSubmit={handleAddComment} className="bg-white p-5 rounded-2xl border border-[#E8DFC8] shadow-xs space-y-3">
-          <textarea
-            rows={3}
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            placeholder="Chia sẻ cảm xúc của bạn về làn điệu hoặc nội dung bài viết..."
-            className="w-full p-3 text-sm bg-[#FAF8F5] border border-[#D9CEBA] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#8C2320] text-[#2D241E]"
-          />
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={!commentText.trim()}
-              className="px-5 py-2 text-xs font-bold text-white bg-[#8C2320] hover:bg-[#6E1B19] disabled:opacity-40 rounded-full transition-colors cursor-pointer"
-            >
-              Gửi cảm nghĩ
-            </button>
-          </div>
-        </form>
-
-        {/* Comments List */}
-        <div className="space-y-3">
-          {comments.map((c, idx) => (
-            <div key={idx} className="p-4 bg-white rounded-xl border border-[#EDE5D8] space-y-1">
-              <div className="flex items-center justify-between text-xs text-[#8C6B50]">
-                <span className="font-bold text-[#2D241E]">{c.name}</span>
-                <span>{c.date}</span>
-              </div>
-              <p className="text-xs sm:text-sm text-[#4A3B32]">{c.content}</p>
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* 8. Related Articles Section */}
       {relatedArticles.length > 0 && (

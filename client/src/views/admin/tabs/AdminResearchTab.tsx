@@ -7,6 +7,8 @@ import { ResearchFormModal } from '../modals/ResearchFormModal';
 interface AdminResearchTabProps {
   researchEntries: ResearchEntry[];
   onUpdateResearchEntries: (entries: ResearchEntry[]) => void;
+  onOpenNewResearch: () => void;
+  onOpenEditResearch: (entry: ResearchEntry) => void;
   showToast: (msg: string, type?: 'success' | 'error') => void;
   onRequestConfirm: (opts: { title?: string; message: string; onConfirm: () => Promise<void> | void }) => void;
 }
@@ -14,15 +16,13 @@ interface AdminResearchTabProps {
 export const AdminResearchTab: React.FC<AdminResearchTabProps> = ({
   researchEntries,
   onUpdateResearchEntries,
+  onOpenNewResearch,
+  onOpenEditResearch,
   showToast,
   onRequestConfirm,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingEntry, setEditingEntry] = useState<ResearchEntry | null>(null);
-  const [formData, setFormData] = useState<Partial<ResearchEntry>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Load entries from backend on tab mount
   useEffect(() => {
@@ -41,58 +41,6 @@ export const AdminResearchTab: React.FC<AdminResearchTabProps> = ({
     }
     loadData();
   }, [searchQuery]);
-
-  const handleOpenAddModal = () => {
-    setEditingEntry(null);
-    setFormData({
-      title: '',
-      date: new Date().toLocaleDateString('vi-VN'),
-      location: 'Bắc Ninh',
-      phase: 'Giai đoạn 1',
-      iconType: 'mic',
-      summary: '',
-      content: '',
-      findings: [],
-      images: [],
-      researcher: 'Đoàn nghiên cứu Mạch Quan Họ',
-    });
-    setIsModalOpen(true);
-  };
-
-  const handleOpenEditModal = (entry: ResearchEntry) => {
-    setEditingEntry(entry);
-    setFormData({ ...entry });
-    setIsModalOpen(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.title || !formData.summary) {
-      showToast('Vui lòng nhập đầy đủ Tiêu đề và Tóm tắt nội dung!', 'error');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      if (editingEntry) {
-        const updated = await apiService.adminUpdateResearchEntry(editingEntry.id, formData);
-        showToast('Cập nhật ghi chép nghiên cứu thành công!', 'success');
-        onUpdateResearchEntries(
-          researchEntries.map((item) => (item.id === editingEntry.id ? { ...item, ...updated } : item))
-        );
-      } else {
-        const created = await apiService.adminCreateResearchEntry(formData);
-        showToast('Thêm ghi chép nghiên cứu mới thành công!', 'success');
-        onUpdateResearchEntries([created, ...researchEntries]);
-      }
-      setIsModalOpen(false);
-    } catch (err: any) {
-      const errMsg = err?.response?.data?.message || 'Có lỗi xảy ra khi lưu ghi chép!';
-      showToast(errMsg, 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handleDelete = (entry: ResearchEntry) => {
     onRequestConfirm({
@@ -132,7 +80,7 @@ export const AdminResearchTab: React.FC<AdminResearchTabProps> = ({
         </div>
 
         <button
-          onClick={handleOpenAddModal}
+          onClick={onOpenNewResearch}
           className="px-4 py-2.5 rounded-xl bg-[#114D3A] text-white text-xs font-bold hover:bg-[#0D3B2C] transition-colors cursor-pointer flex items-center space-x-1.5 shadow-xs"
         >
           <Plus className="w-4 h-4" />
@@ -158,12 +106,12 @@ export const AdminResearchTab: React.FC<AdminResearchTabProps> = ({
           <table className="w-full text-left text-xs text-[#2D241E]">
             <thead className="bg-[#FAF8F5] border-b border-[#E8DFC8] text-[11px] font-bold text-[#7A6B60] uppercase tracking-wider">
               <tr>
-                <th className="py-3.5 px-4 w-12 text-center">STT</th>
-                <th className="py-3.5 px-4 min-w-[220px]">Tiêu đề & Tóm tắt</th>
-                <th className="py-3.5 px-4 w-32">Ngày & Địa điểm</th>
-                <th className="py-3.5 px-4 w-28">Giai đoạn</th>
-                <th className="py-3.5 px-4 w-36">Người nghiên cứu</th>
-                <th className="py-3.5 px-4 w-24 text-center">Thao tác</th>
+                <th className="py-3.5 px-4 w-12 text-center whitespace-nowrap">STT</th>
+                <th className="py-3.5 px-4 min-w-[280px]">Tiêu đề & Tóm tắt</th>
+                <th className="py-3.5 px-4 min-w-[140px] whitespace-nowrap">Ngày & Địa điểm</th>
+                <th className="py-3.5 px-4 min-w-[130px] whitespace-nowrap">Giai đoạn</th>
+                <th className="py-3.5 px-4 min-w-[160px] whitespace-nowrap">Người nghiên cứu</th>
+                <th className="py-3.5 px-4 w-24 text-center whitespace-nowrap">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E8DFC8]">
@@ -182,58 +130,60 @@ export const AdminResearchTab: React.FC<AdminResearchTabProps> = ({
               ) : (
                 filteredEntries.map((entry, index) => (
                   <tr key={entry.id} className="hover:bg-[#FAF8F5]/60 transition-colors">
-                    <td className="py-3.5 px-4 text-center text-[#7A6B60] font-medium">
-                      {index + 1}
+                    <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                      <span className="px-2 py-0.5 rounded bg-[#FAF8F5] border border-[#E8DFC8] text-[#114D3A] font-bold text-[11px]">
+                        #{entry.sortOrder ?? 0}
+                      </span>
                     </td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 min-w-[280px]">
                       <div className="flex items-start space-x-3">
                         {entry.images && entry.images.length > 0 ? (
                           <img
                             src={entry.images[0]}
                             alt={entry.title}
-                            className="w-12 h-12 rounded-lg object-cover border border-[#E8DFC8] shrink-0"
+                            className="w-11 h-11 rounded-xl object-cover border border-[#E8DFC8] shrink-0 shadow-xs"
                           />
                         ) : (
-                          <div className="w-12 h-12 rounded-lg bg-[#114D3A]/10 text-[#114D3A] flex items-center justify-center font-bold text-xs shrink-0">
+                          <div className="w-11 h-11 rounded-xl bg-[#114D3A]/10 text-[#114D3A] flex items-center justify-center font-bold text-xs shrink-0 border border-[#114D3A]/20">
                             <BookOpen className="w-5 h-5" />
                           </div>
                         )}
-                        <div>
-                          <h4 className="font-bold text-[#2D241E] line-clamp-1 hover:text-[#114D3A] transition-colors">
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-bold text-[#2D241E] text-xs line-clamp-1 hover:text-[#114D3A] transition-colors">
                             {entry.title}
                           </h4>
-                          <p className="text-[11px] text-[#7A6B60] line-clamp-2 mt-0.5">
+                          <p className="text-[11px] text-[#7A6B60] line-clamp-2 mt-0.5 leading-relaxed">
                             {entry.summary}
                           </p>
                         </div>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-[#6B5A4E]">
+                    <td className="py-3.5 px-4 text-[#6B5A4E] whitespace-nowrap">
                       <div className="space-y-1">
-                        <span className="flex items-center space-x-1">
-                          <Calendar className="w-3 h-3 text-[#D4A25A]" />
+                        <span className="flex items-center space-x-1.5 text-xs font-medium">
+                          <Calendar className="w-3.5 h-3.5 text-[#D4A25A] shrink-0" />
                           <span>{entry.date}</span>
                         </span>
-                        <span className="flex items-center space-x-1 text-[11px]">
-                          <MapPin className="w-3 h-3 text-[#8C2F2F]" />
-                          <span className="truncate max-w-[100px]">{entry.location}</span>
+                        <span className="flex items-center space-x-1.5 text-[11px]">
+                          <MapPin className="w-3.5 h-3.5 text-[#8C2F2F] shrink-0" />
+                          <span className="truncate max-w-[120px]">{entry.location}</span>
                         </span>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4">
-                      <span className="px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-[#114D3A]/10 text-[#114D3A] border border-[#114D3A]/20">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <span className="inline-flex items-center whitespace-nowrap px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#114D3A]/10 text-[#114D3A] border border-[#114D3A]/20 shadow-2xs">
                         {entry.phase}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-[#6B5A4E]">
-                      <span className="truncate max-w-[130px] block font-medium">
+                    <td className="py-3.5 px-4 text-[#6B5A4E] whitespace-nowrap">
+                      <span className="font-medium text-xs text-[#2D241E]">
                         {entry.researcher || 'Mạch Quan Họ'}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-center">
+                    <td className="py-3.5 px-4 text-center whitespace-nowrap">
                       <div className="flex items-center justify-center space-x-1.5">
                         <button
-                          onClick={() => handleOpenEditModal(entry)}
+                          onClick={() => onOpenEditResearch(entry)}
                           className="p-1.5 rounded-lg text-[#114D3A] hover:bg-[#114D3A]/10 transition-colors cursor-pointer"
                           title="Sửa"
                         >
@@ -255,17 +205,6 @@ export const AdminResearchTab: React.FC<AdminResearchTabProps> = ({
           </table>
         </div>
       </div>
-
-      {/* Research Form Modal */}
-      <ResearchFormModal
-        isOpen={isModalOpen}
-        editingEntry={editingEntry}
-        formData={formData}
-        isSubmitting={isSubmitting}
-        setFormData={setFormData}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleSubmit}
-      />
     </div>
   );
 };

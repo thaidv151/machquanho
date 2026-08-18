@@ -21,10 +21,12 @@ class ResearchEntry extends Model
         'images',
         'audio_title',
         'researcher',
+        'sort_order',
     ];
 
     protected $casts = [
         'findings' => 'array',
         'images' => 'array',
+        'sort_order' => 'integer',
     ];
 }

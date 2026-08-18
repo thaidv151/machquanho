@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { SiteConfig, SiteFooterConfig, FooterLinkItem, SocialPlatformItem } from '../../../types';
 import { DEFAULT_SITE_CONFIG } from '../../../data/mockData';
 import { ImageUploader } from '../../../components/ImageUploader';
+import { SocialPlatformIcon } from '../../../components/SocialPlatformIcon';
 import { Save, Plus, Trash2, Loader2, Globe, Link as LinkIcon, Info, Share2 } from 'lucide-react';
 
 interface AdminFooterTabProps {
@@ -307,19 +308,29 @@ export const AdminFooterTab: React.FC<AdminFooterTabProps> = ({
                     />
                   </div>
 
-                  <div className="w-full sm:w-1/4">
+                  <div className="w-full sm:w-1/3">
                     <label className="block text-[11px] font-bold text-[#7A6B60] mb-1">Icon hệ thống mặc định</label>
-                    <select
-                      value={item.iconType || 'custom'}
-                      onChange={(e) => handleUpdateSocialPlatform(item.id, 'iconType', e.target.value)}
-                      className="w-full px-3 py-1.5 rounded-lg border border-[#E8DFC8] text-xs bg-white focus:outline-none focus:border-[#114D3A]"
-                    >
-                      <option value="facebook">Facebook Icon</option>
-                      <option value="youtube">YouTube Icon</option>
-                      <option value="tiktok">TikTok Icon</option>
-                      <option value="email">Email Icon</option>
-                      <option value="custom">Upload Icon riêng (Tùy chỉnh)</option>
-                    </select>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 rounded-lg bg-[#092B20] text-white flex items-center justify-center border border-[#D4A25A]/40 shrink-0 shadow-xs">
+                        <SocialPlatformIcon iconType={item.iconType} iconUrl={item.iconUrl} name={item.name} className="w-4 h-4" />
+                      </div>
+                      <select
+                        value={item.iconType || 'custom'}
+                        onChange={(e) => handleUpdateSocialPlatform(item.id, 'iconType', e.target.value)}
+                        className="flex-1 px-3 py-1.5 rounded-lg border border-[#E8DFC8] text-xs bg-white focus:outline-none focus:border-[#114D3A]"
+                      >
+                        <option value="facebook">Facebook Icon</option>
+                        <option value="youtube">YouTube Icon</option>
+                        <option value="tiktok">TikTok Icon (Chính thức)</option>
+                        <option value="zalo">Zalo / Chat Icon</option>
+                        <option value="instagram">Instagram Icon</option>
+                        <option value="spotify">Spotify / Music Icon</option>
+                        <option value="email">Email Icon</option>
+                        <option value="globe">Website Icon</option>
+                        <option value="phone">Hotline Icon</option>
+                        <option value="custom">Upload Icon riêng (Tùy chỉnh)</option>
+                      </select>
+                    </div>
                   </div>
 
                   <button

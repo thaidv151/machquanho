@@ -65,6 +65,7 @@ function getPathFromView(view: ViewState): string {
     case 'admin':
       return `/admin/${view.section || 'dashboard'}`;
     case 'news':
+      if (view.category && view.searchQuery) return `/news?category=${encodeURIComponent(view.category)}&q=${encodeURIComponent(view.searchQuery)}`;
       if (view.category) return `/news?category=${encodeURIComponent(view.category)}`;
       if (view.searchQuery) return `/news?q=${encodeURIComponent(view.searchQuery)}`;
       return '/news';
@@ -136,6 +137,23 @@ export default function App() {
     }
     loadSiteConfig();
   }, []);
+
+  // 4. Dynamic Favicon Sync based on uploaded logo image
+  useEffect(() => {
+    const iconUrl = siteConfig.logoType === 'image' && siteConfig.logoImageUrl 
+      ? siteConfig.logoImageUrl 
+      : undefined;
+
+    if (iconUrl) {
+      let linkElement = document.querySelector<HTMLLinkElement>("link[rel*='icon']");
+      if (!linkElement) {
+        linkElement = document.createElement('link');
+        linkElement.rel = 'shortcut icon';
+        document.getElementsByTagName('head')[0].appendChild(linkElement);
+      }
+      linkElement.href = iconUrl;
+    }
+  }, [siteConfig.logoType, siteConfig.logoImageUrl]);
 
   useEffect(() => {
     async function loadViewData() {

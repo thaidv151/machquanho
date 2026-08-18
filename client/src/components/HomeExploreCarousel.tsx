@@ -24,7 +24,7 @@ export const HomeExploreCarousel: React.FC<HomeExploreCarouselProps> = ({
 
   return (
     <section id="home-explore-section" className="py-14 bg-[#E3D5C3]/40 border-t border-[#E3D5C3]">
-      <div className="max-w-[1580px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Title Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">

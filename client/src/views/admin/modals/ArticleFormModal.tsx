@@ -2,6 +2,7 @@ import React from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { Article, ArticleCategory } from '../../../types';
 import { ImageUploader } from '../../../components/ImageUploader';
+import Editor from '../../../components/Editor';
 
 interface ArticleFormModalProps {
   isOpen: boolean;
@@ -102,13 +103,10 @@ export const ArticleFormModal: React.FC<ArticleFormModalProps> = ({
 
           <div>
             <label className="block text-xs font-bold text-[#4A3B32] mb-1">Nội dung bài viết *</label>
-            <textarea
-              rows={6}
-              required
-              value={Array.isArray(articleFormData.content) ? articleFormData.content.join('\n\n') : (articleFormData.content || '')}
-              onChange={(e) => setArticleFormData({ ...articleFormData, content: e.target.value.split('\n\n') })}
-              placeholder="Nhập các đoạn nội dung bài viết (cách nhau 2 lần enter)..."
-              className="w-full p-3 bg-[#FAF8F5] border border-[#D9CEBA] rounded-xl text-xs text-[#2D241E]"
+            <Editor
+              value={Array.isArray(articleFormData.content) ? articleFormData.content.join('') : (articleFormData.content || '')}
+              onChange={(val) => setArticleFormData({ ...articleFormData, content: [val] })}
+              minHeight={260}
             />
           </div>
 

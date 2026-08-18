@@ -96,7 +96,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     <>
       {/* Top Heritage Accent Bar */}
       <div id="top-heritage-bar" className="bg-[#114D3A] text-[#F2E9DD] text-xs font-medium py-1.5 px-4">
-        <div className="max-w-[1580px] mx-auto flex justify-between items-center">
+        <div className="max-w-[1480px] mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <span className="inline-block w-2 h-2 rounded-full bg-[#D4A25A] animate-pulse"></span>
             <span>{headerConfig.topNoticeText || 'Di sản Văn hóa Phi vật thể đại diện của Nhân loại - UNESCO 2009'}</span>
@@ -118,7 +118,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Main Navigation Header */}
       <header id="main-header" className="sticky top-0 z-40 bg-[#F2E9DD]/95 backdrop-blur-md border-b border-[#E3D5C3] shadow-xs">
-        <div className="max-w-[1580px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             
             {/* Logo Brand */}
@@ -150,7 +150,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             {/* Dynamic Desktop Navigation Links */}
-            <nav id="desktop-nav-menu" className="hidden lg:flex items-center space-x-1 xl:space-x-2">
+            <nav id="desktop-nav-menu" className="hidden lg:flex items-center space-x-2 xl:space-x-3">
               {navItemsList.map((item) => {
                 const active = isActive(item.viewType);
                 return (
@@ -158,10 +158,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                     key={item.id}
                     id={`nav-link-${item.viewType}`}
                     onClick={() => onNavigate({ type: item.viewType } as ViewState)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center space-x-1.5 cursor-pointer ${
+                    className={`px-3 py-2.5 text-sm font-bold transition-all flex items-center space-x-2 cursor-pointer relative ${
                       active
-                        ? 'bg-[#114D3A] text-white shadow-sm font-bold border border-[#0D3B2C]'
-                        : 'text-[#2D241E] hover:text-[#114D3A] hover:bg-[#E3D5C3]/60 font-semibold'
+                        ? 'text-[#8C2320] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#8C2320] after:rounded-full'
+                        : 'text-[#2D241E] hover:text-[#8C2320] hover:bg-[#E3D5C3]/40 rounded-lg'
                     }`}
                   >
                     {renderItemIcon(item)}
@@ -329,7 +329,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }}
                   className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left text-sm font-medium transition-colors ${
                     active
-                      ? 'bg-[#114D3A] text-white font-bold'
+                      ? 'bg-[#8C2320]/10 text-[#8C2320] font-bold border-l-4 border-[#8C2320]'
                       : 'text-[#2D241E] hover:bg-[#E3D5C3]/60'
                   }`}
                 >

@@ -27,11 +27,11 @@ export const HomePage: React.FC<HomePageProps> = ({
 }) => {
   // Published articles only for client view
   const publishedArticles = articles.filter(a => a.status === 'Đã đăng');
-  const latestArticles = publishedArticles.slice(0, 12);
+  const latestArticles = publishedArticles.slice(0, 8);
 
   return (
     <div id="home-page-container" className="space-y-12">
-      
+
       {/* 1. Hero Banner */}
       <HomeHero
         siteConfig={siteConfig}
@@ -40,12 +40,12 @@ export const HomePage: React.FC<HomePageProps> = ({
       />
 
       {/* 2. Main Two-Column Content: News & Activities (8 cols) + Research Timeline (4 cols) */}
-      <section className="max-w-[1580px] mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+      <section className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
-          
+
           {/* Left Column: Tin tức & Hoạt động (8 cols) */}
           <div className="lg:col-span-8 space-y-6">
-            
+
             {/* Section Header */}
             <div className="flex items-center justify-between pb-3 border-b-2 border-[#114D3A]">
               <div className="flex items-center space-x-2.5">
@@ -68,7 +68,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             </div>
 
             {/* 4 Articles on 1 Single Row Grid inside 8-Col Section */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-y-6">
               {latestArticles.map((article) => {
                 const articleSlugOrId = article.slug || article.id;
                 return (
@@ -79,14 +79,14 @@ export const HomePage: React.FC<HomePageProps> = ({
                     className="bg-white rounded-2xl overflow-hidden border border-[#E3D5C3] hover:border-[#114D3A] hover:shadow-lg transition-all duration-300 group cursor-pointer flex flex-col justify-between"
                   >
                     {/* Card Thumbnail */}
-                    <div className="relative h-36 sm:h-40 overflow-hidden bg-[#0A3326]">
+                    <div className="relative h-36 sm:h-44 overflow-hidden bg-[#0A3326]">
                       <img
                         src={article.coverImage}
                         alt={article.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                      
+
                       {/* Real Category Pill */}
                       {article.category && (
                         <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#8C2F2F] text-white shadow-xs">
@@ -156,7 +156,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               })}
             </div>
 
-            {/* Quick Explore Banner in News Section */}
+            {/* Quick Explore Banner in News Section
             <div className="bg-[#E3D5C3]/40 p-5 rounded-2xl border border-[#E3D5C3] flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="space-y-1 text-center sm:text-left">
                 <h4 className="font-serif-culture text-base font-bold text-[#114D3A]">
@@ -172,7 +172,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               >
                 Khám phá Làn điệu
               </button>
-            </div>
+            </div> */}
 
           </div>
 

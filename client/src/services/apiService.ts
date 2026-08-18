@@ -102,6 +102,7 @@ function normalizeResearchEntry(entry: any): ResearchEntry {
     findings: Array.isArray(entry.findings) ? entry.findings : (entry.findings ? (typeof entry.findings === 'string' ? JSON.parse(entry.findings) : entry.findings) : []),
     images: Array.isArray(entry.images) ? entry.images : (entry.images ? (typeof entry.images === 'string' ? JSON.parse(entry.images) : entry.images) : []),
     audioTitle: entry.audioTitle || entry.audio_title,
+    sortOrder: entry.sortOrder ?? entry.sort_order ?? 0,
   };
 }
 
@@ -268,12 +269,24 @@ export const apiService = {
   },
 
   async adminCreateResearchEntry(entry: Partial<ResearchEntry>): Promise<ResearchEntry> {
-    const res = await apiClient.post('/admin/research-entries', entry);
+    const payload = {
+      ...entry,
+      sort_order: entry.sortOrder ?? (entry as any).sort_order ?? 0,
+      icon_type: entry.iconType || (entry as any).icon_type || 'book',
+      audio_title: entry.audioTitle || (entry as any).audio_title || '',
+    };
+    const res = await apiClient.post('/admin/research-entries', payload);
     return normalizeResearchEntry(res.data.data);
   },
 
   async adminUpdateResearchEntry(id: string | number, entry: Partial<ResearchEntry>): Promise<ResearchEntry> {
-    const res = await apiClient.post(`/admin/research-entries/${id}/update`, entry);
+    const payload = {
+      ...entry,
+      sort_order: entry.sortOrder ?? (entry as any).sort_order ?? 0,
+      icon_type: entry.iconType || (entry as any).icon_type || 'book',
+      audio_title: entry.audioTitle || (entry as any).audio_title || '',
+    };
+    const res = await apiClient.post(`/admin/research-entries/${id}/update`, payload);
     return normalizeResearchEntry(res.data.data);
   },
 
