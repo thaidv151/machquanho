@@ -34,7 +34,7 @@ function getViewFromPath(path: string): ViewState {
   if (cleanPath.startsWith('/admin')) {
     const parts = cleanPath.split('/');
     const sec = parts[2] || 'dashboard';
-    const validSections = ['dashboard', 'articles', 'users', 'categories', 'banner', 'header', 'menus', 'research', 'footer', 'seo', 'scripts'];
+    const validSections = ['dashboard', 'articles', 'users', 'categories', 'banner', 'header', 'menus', 'research', 'explore', 'team', 'footer', 'seo', 'scripts'];
     const section = (validSections.includes(sec) ? sec : 'dashboard') as any;
     return { type: 'admin', section };
   }

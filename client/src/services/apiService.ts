@@ -1,8 +1,21 @@
 import apiClient from './apiClient';
-import { Article, CategoryInfo, ResearchEntry, Artisan, ExploreTopic, SiteConfig, AdminUser } from '../types';
+import { Article, CategoryInfo, ResearchEntry, Artisan, ExploreTopic, SiteConfig, AdminUser, TeamMember } from '../types';
 import { DEFAULT_SITE_CONFIG } from '../data/mockData';
 
 // Helper normalizers to bridge Laravel snake_case DB fields with Frontend TS interfaces
+
+function normalizeTeamMember(item: any): TeamMember {
+  if (!item) return item;
+  return {
+    id: String(item.id),
+    name: item.name || '',
+    role: item.role || 'Thành viên',
+    avatar: item.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+    bio: item.bio || '',
+    sortOrder: item.sort_order ?? item.sortOrder ?? 0,
+    isActive: item.is_active !== undefined ? Boolean(item.is_active) : (item.isActive !== undefined ? Boolean(item.isActive) : true),
+  };
+}
 
 function normalizeArticle(item: any): Article {
   if (!item) return item;
@@ -334,6 +347,48 @@ export const apiService = {
 
   async adminDeleteExploreTopic(id: string | number) {
     const res = await apiClient.post(`/admin/explore-topics/${id}/delete`);
+    return res.data;
+  },
+
+  // 5.5 Team Members
+  async getTeamMembers(): Promise<TeamMember[]> {
+    const res = await apiClient.get('/team-members');
+    return (res.data.data || []).map(normalizeTeamMember);
+  },
+
+  async adminGetTeamMembers(payload?: any): Promise<TeamMember[]> {
+    const res = await apiClient.post('/admin/team-members/GetData', payload || {});
+    return (res.data.data || []).map(normalizeTeamMember);
+  },
+
+  async adminCreateTeamMember(member: Partial<TeamMember>): Promise<TeamMember> {
+    const payload = {
+      name: member.name,
+      role: member.role,
+      avatar: member.avatar,
+      bio: member.bio,
+      sort_order: member.sortOrder,
+      is_active: member.isActive,
+    };
+    const res = await apiClient.post('/admin/team-members', payload);
+    return normalizeTeamMember(res.data.data);
+  },
+
+  async adminUpdateTeamMember(id: string | number, member: Partial<TeamMember>): Promise<TeamMember> {
+    const payload = {
+      name: member.name,
+      role: member.role,
+      avatar: member.avatar,
+      bio: member.bio,
+      sort_order: member.sortOrder,
+      is_active: member.isActive,
+    };
+    const res = await apiClient.post(`/admin/team-members/${id}/update`, payload);
+    return normalizeTeamMember(res.data.data);
+  },
+
+  async adminDeleteTeamMember(id: string | number) {
+    const res = await apiClient.post(`/admin/team-members/${id}/delete`);
     return res.data;
   },
 

@@ -72,6 +72,16 @@ export interface ExploreTopic {
   highlights: string[];
 }
 
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: string;
+  avatar: string;
+  bio?: string;
+  sortOrder?: number;
+  isActive?: boolean;
+}
+
 export interface AdminUser {
   id: string;
   name: string;
@@ -245,4 +255,4 @@ export type ViewState =
   | { type: 'research-diary'; selectedId?: string }
   | { type: 'about' }
   | { type: 'explore-detail'; topicId: string }
-  | { type: 'admin'; section: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'footer' | 'seo' | 'scripts' };
+  | { type: 'admin'; section: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'footer' | 'seo' | 'scripts' };

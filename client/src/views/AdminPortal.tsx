@@ -19,7 +19,8 @@ import { AdminFooterTab } from './admin/tabs/AdminFooterTab';
 import { AdminSeoTab } from './admin/tabs/AdminSeoTab';
 import { AdminScriptsTab } from './admin/tabs/AdminScriptsTab';
 import { AdminExploreTab } from './admin/tabs/AdminExploreTab';
-import { HeaderNavItem, ResearchEntry, ExploreTopic, SiteFooterConfig, SiteSeoConfig } from '../types';
+import { AdminTeamTab } from './admin/tabs/AdminTeamTab';
+import { HeaderNavItem, ResearchEntry, ExploreTopic, SiteFooterConfig, SiteSeoConfig, TeamMember } from '../types';
 
 import { UserFormModal } from './admin/modals/UserFormModal';
 import { CategoryFormModal } from './admin/modals/CategoryFormModal';
@@ -27,7 +28,7 @@ import { AdminArticleEditorPage } from './admin/pages/AdminArticleEditorPage';
 import { AdminResearchEditorPage } from './admin/pages/AdminResearchEditorPage';
 
 interface AdminPortalProps {
-  section: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'footer' | 'seo' | 'scripts';
+  section: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'footer' | 'seo' | 'scripts';
   articles: Article[];
   users: AdminUser[];
   categories: CategoryInfo[];
@@ -63,7 +64,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   onLogout,
   onNavigate,
 }) => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'footer' | 'seo' | 'scripts'>(section || 'dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'footer' | 'seo' | 'scripts'>(section || 'dashboard');
   const [toastState, setToastState] = useState<{ message: string; type: ToastType } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -541,6 +542,64 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     }
   };
 
+  // Team Members State & Handlers
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+
+  const fetchTeamMembers = async () => {
+    try {
+      const list = await apiService.adminGetTeamMembers();
+      setTeamMembers(list);
+    } catch (err) {
+      console.error('Failed to fetch team members:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchTeamMembers();
+  }, []);
+
+  const handleCreateTeamMember = async (member: Partial<TeamMember>) => {
+    setIsSubmitting(true);
+    try {
+      await apiService.adminCreateTeamMember(member);
+      await fetchTeamMembers();
+      showToast('Thêm thành viên mới thành công!', 'success');
+    } catch (err: any) {
+      showToast(err?.response?.data?.message || 'Có lỗi xảy ra khi thêm thành viên', 'error');
+      throw err;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateTeamMember = async (id: string, member: Partial<TeamMember>) => {
+    setIsSubmitting(true);
+    try {
+      await apiService.adminUpdateTeamMember(id, member);
+      await fetchTeamMembers();
+      showToast('Cập nhật thành viên thành công!', 'success');
+    } catch (err: any) {
+      showToast(err?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật thành viên', 'error');
+      throw err;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteTeamMember = async (id: string) => {
+    setIsSubmitting(true);
+    try {
+      await apiService.adminDeleteTeamMember(id);
+      await fetchTeamMembers();
+      showToast('Xóa thành viên thành công!', 'success');
+    } catch (err: any) {
+      showToast(err?.response?.data?.message || 'Có lỗi xảy ra khi xóa thành viên', 'error');
+      throw err;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (editorView.type === 'article') {
     return (
       <AdminArticleEditorPage
@@ -574,6 +633,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         articlesCount={articles.length}
         usersCount={users.length}
         categoriesCount={categories.length}
+        teamCount={teamMembers.length}
         onSelectTab={(tab) => {
           setActiveTab(tab);
           onNavigate({ type: 'admin', section: tab });
@@ -692,6 +752,17 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               onCreateTopic={handleCreateExploreTopic}
               onUpdateTopic={handleUpdateExploreTopic}
               onDeleteTopic={handleDeleteExploreTopic}
+            />
+          )}
+
+          {activeTab === 'team' && (
+            <AdminTeamTab
+              teamMembers={teamMembers}
+              isSubmitting={isSubmitting}
+              onCreateMember={handleCreateTeamMember}
+              onUpdateMember={handleUpdateTeamMember}
+              onDeleteMember={handleDeleteTeamMember}
+              onRefresh={fetchTeamMembers}
             />
           )}
 

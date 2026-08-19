@@ -3,7 +3,7 @@ import { LogOut } from 'lucide-react';
 import { AdminUser } from '../../types';
 
 interface AdminHeaderProps {
-  activeTab: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'footer' | 'seo' | 'scripts';
+  activeTab: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'footer' | 'seo' | 'scripts';
   currentUser?: AdminUser | null;
   onLogout?: () => void;
 }
@@ -21,6 +21,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
       case 'categories': return 'Quản lý chuyên mục';
       case 'research': return 'Nhật ký nghiên cứu';
       case 'explore': return 'Chuyên đề Khám phá di sản';
+      case 'team': return 'Thành viên nhóm nghiên cứu';
       case 'menus': return 'Quản lý Menu Navigation';
       case 'header': return 'Cấu hình Header & Logo';
       case 'banner': return 'Cấu hình Banner trang chủ';

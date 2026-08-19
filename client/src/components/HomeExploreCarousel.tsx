@@ -22,9 +22,9 @@ export const HomeExploreCarousel: React.FC<HomeExploreCarouselProps> = ({
   };
 
   return (
-    <section id="home-explore-section" className="py-14 bg-[#E3D5C3]/40 border-t border-[#E3D5C3]">
+    <section id="home-explore-section" className="py-10 bg-[#E3D5C3]/40 border-t border-[#E3D5C3]">
       <div className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Section Title Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
           <div>
@@ -94,7 +94,7 @@ export const HomeExploreCarousel: React.FC<HomeExploreCarouselProps> = ({
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  
+
                   {/* Badge */}
                   {topic.badge && (
                     <span className="absolute top-3 left-3 px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#8C2F2F] text-white shadow-xs">

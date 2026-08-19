@@ -3,6 +3,7 @@ import { Article, ResearchEntry, ExploreTopic, SiteConfig, ViewState } from '../
 import { HomeHero } from '../components/HomeHero';
 import { HomeTimeline } from '../components/HomeTimeline';
 import { HomeExploreCarousel } from '../components/HomeExploreCarousel';
+import { HomeTeamSection } from '../components/HomeTeamSection';
 import { Newspaper, Calendar, ArrowRight, Eye, Sparkles, Clock, Music } from 'lucide-react';
 import { audioPlayer } from '../utils/audioSynth';
 
@@ -30,7 +31,7 @@ export const HomePage: React.FC<HomePageProps> = ({
   const latestArticles = publishedArticles.slice(0, 8);
 
   return (
-    <div id="home-page-container" className="space-y-12">
+    <div id="home-page-container">
 
       {/* 1. Hero Banner */}
       <HomeHero
@@ -40,7 +41,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       />
 
       {/* 2. Main Two-Column Content: News & Activities (8 cols) + Research Timeline (4 cols) */}
-      <section className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+      <section className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
 
           {/* Left Column: Tin tức & Hoạt động (8 cols) */}
@@ -192,6 +193,9 @@ export const HomePage: React.FC<HomePageProps> = ({
         topics={exploreTopics}
         onSelectTopic={onSelectTopic}
       />
+
+      {/* 4. Về nhóm nghiên cứu */}
+      <HomeTeamSection />
 
     </div>
   );

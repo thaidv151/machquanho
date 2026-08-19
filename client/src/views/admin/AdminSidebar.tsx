@@ -1,13 +1,14 @@
 import React from 'react';
-import { LayoutDashboard, FileText, Users, FolderKanban, Settings, ArrowLeft, Compass, Menu, BookOpen, Globe, Search, Code, Layers } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, FolderKanban, Settings, ArrowLeft, Compass, Menu, BookOpen, Globe, Search, Code, Layers, UserCheck } from 'lucide-react';
 import { ViewState } from '../../types';
 
 interface AdminSidebarProps {
-  activeTab: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'footer' | 'seo' | 'scripts';
+  activeTab: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'footer' | 'seo' | 'scripts';
   articlesCount: number;
   usersCount: number;
   categoriesCount: number;
-  onSelectTab: (tab: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'footer' | 'seo' | 'scripts') => void;
+  teamCount?: number;
+  onSelectTab: (tab: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'footer' | 'seo' | 'scripts') => void;
   onNavigate: (view: ViewState) => void;
 }
 
@@ -16,6 +17,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   articlesCount,
   usersCount,
   categoriesCount,
+  teamCount,
   onSelectTab,
   onNavigate,
 }) => {
@@ -27,6 +29,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         { id: 'articles' as const, label: 'Quản lý tin bài', icon: FileText, badge: articlesCount },
         { id: 'research' as const, label: 'Nhật ký nghiên cứu', icon: BookOpen },
         { id: 'explore' as const, label: 'Chuyên đề Khám phá', icon: Compass },
+        { id: 'team' as const, label: 'Quản lý thành viên nhóm', icon: UserCheck, badge: teamCount },
         { id: 'categories' as const, label: 'Quản lý chuyên mục', icon: FolderKanban, badge: categoriesCount },
       ],
     },
