@@ -5,6 +5,8 @@ namespace App\Repositories;
 use App\Models\ResearchEntry;
 use Illuminate\Support\Facades\Cache;
 
+use Illuminate\Database\Eloquent\Model;
+
 class ResearchEntryRepository extends BaseRepository
 {
     public function __construct(ResearchEntry $model)
@@ -23,19 +25,19 @@ class ResearchEntryRepository extends BaseRepository
         });
     }
 
-    public function create(array $data)
+    public function create(array $data): Model
     {
         Cache::forget('public_research_entries');
         return parent::create($data);
     }
 
-    public function update($id, array $data)
+    public function update(int|string $id, array $data): Model
     {
         Cache::forget('public_research_entries');
         return parent::update($id, $data);
     }
 
-    public function delete($id)
+    public function delete(int|string $id): bool
     {
         Cache::forget('public_research_entries');
         return parent::delete($id);
