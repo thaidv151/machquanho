@@ -1,13 +1,17 @@
 import React from 'react';
 import { X, Loader2 } from 'lucide-react';
+import { CategoryInfo } from '../../../types';
 
 interface CategoryFormModalProps {
   isOpen: boolean;
+  editingCategory?: CategoryInfo | null;
   newCatName: string;
+  newCatSlug: string;
   newCatColor: string;
   newCatDesc: string;
   isSubmitting: boolean;
   setNewCatName: (val: string) => void;
+  setNewCatSlug: (val: string) => void;
   setNewCatColor: (val: string) => void;
   setNewCatDesc: (val: string) => void;
   onClose: () => void;
@@ -16,11 +20,14 @@ interface CategoryFormModalProps {
 
 export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
   isOpen,
+  editingCategory,
   newCatName,
+  newCatSlug,
   newCatColor,
   newCatDesc,
   isSubmitting,
   setNewCatName,
+  setNewCatSlug,
   setNewCatColor,
   setNewCatDesc,
   onClose,
@@ -33,7 +40,7 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
       <div className="bg-white rounded-3xl max-w-md w-full p-6 relative space-y-4 animate-scaleUp border border-[#E8DFC8]">
         <div className="flex items-center justify-between pb-3 border-b border-[#E8DFC8]">
           <h3 className="font-serif-culture text-lg font-bold text-[#2D241E]">
-            Thêm chuyên mục mới
+            {editingCategory ? 'Chỉnh sửa chuyên mục' : 'Thêm chuyên mục mới'}
           </h3>
           <button onClick={onClose} className="p-1 text-[#7A6B60]">
             <X className="w-5 h-5" />
@@ -51,6 +58,23 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
               onChange={(e) => setNewCatName(e.target.value)}
               className="w-full p-2.5 bg-[#FAF8F5] border border-[#D9CEBA] rounded-xl text-xs text-[#2D241E]"
             />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-[#4A3B32] mb-1">
+              Đường dẫn Slug (URL) *
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="VD: khong-gian-le-hoi"
+              value={newCatSlug}
+              onChange={(e) => setNewCatSlug(e.target.value)}
+              className="w-full p-2.5 bg-[#FAF8F5] border border-[#D9CEBA] rounded-xl text-xs font-mono text-[#8C2320]"
+            />
+            <span className="text-[10px] text-[#7A6B60] mt-0.5 block">
+              Tự động sinh từ tên chuyên mục, có thể chỉnh sửa thủ công.
+            </span>
           </div>
 
           <div>
@@ -91,10 +115,10 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Tạo...</span>
+                  <span>{editingCategory ? 'Đang lưu...' : 'Tạo...'}</span>
                 </>
               ) : (
-                <span>Tạo chuyên mục</span>
+                <span>{editingCategory ? 'Lưu thay đổi' : 'Tạo chuyên mục'}</span>
               )}
             </button>
           </div>

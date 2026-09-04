@@ -14,13 +14,25 @@ import { GlobalAudioPlayer } from './components/GlobalAudioPlayer';
 import { ExploreTopicModal } from './components/ExploreTopicModal';
 import { LoginModal } from './components/LoginModal';
 import { HomePage } from './views/HomePage';
-import { NewsListPage } from './views/NewsListPage';
-import { ArticleDetailPage } from './views/ArticleDetailPage';
-import { AboutPage } from './views/AboutPage';
-import { ResearchDiaryPage } from './views/ResearchDiaryPage';
-import { AdminPortal } from './views/AdminPortal';
 import { audioPlayer } from './utils/audioSynth';
 import { apiService } from './services/apiService';
+
+// Lazy loading views for bundle optimization & code splitting
+const NewsListPage = React.lazy(() => import('./views/NewsListPage').then(m => ({ default: m.NewsListPage })));
+const ArticleDetailPage = React.lazy(() => import('./views/ArticleDetailPage').then(m => ({ default: m.ArticleDetailPage })));
+const AboutPage = React.lazy(() => import('./views/AboutPage').then(m => ({ default: m.AboutPage })));
+const ResearchDiaryPage = React.lazy(() => import('./views/ResearchDiaryPage').then(m => ({ default: m.ResearchDiaryPage })));
+const AdminPortal = React.lazy(() => import('./views/AdminPortal').then(m => ({ default: m.AdminPortal })));
+
+// Loading spinner fallback component for lazy route transitions
+const LoadingFallback = () => (
+  <div className="min-h-[50vh] flex items-center justify-center py-20">
+    <div className="flex flex-col items-center space-y-4">
+      <div className="w-10 h-10 border-4 border-[#114D3A] border-t-transparent rounded-full animate-spin"></div>
+      <p className="text-sm font-medium text-[#114D3A]">Đang tải dữ liệu...</p>
+    </div>
+  </div>
+);
 
 // Helper to convert URL location into ViewState
 function getViewFromPath(path: string): ViewState {
@@ -125,17 +137,28 @@ export default function App() {
     checkAuth();
   }, []);
 
-  // 3. Lazy Data Fetching: Fetch site config on mount, and lazy-load view-specific data on view change
+  // 3. Lazy Data Fetching: Fetch site config and public data on mount
   useEffect(() => {
-    async function loadSiteConfig() {
+    async function loadInitialPublicData() {
       try {
-        const config = await apiService.getSiteConfig();
+        const [config, arts, cats, resEntries, expTopics] = await Promise.all([
+          apiService.getSiteConfig().catch(() => null),
+          apiService.getArticles().catch(() => []),
+          apiService.getCategories().catch(() => []),
+          apiService.getResearchEntries().catch(() => []),
+          apiService.getExploreTopics().catch(() => []),
+        ]);
+
         if (config && config.siteName) setSiteConfig((prev) => ({ ...prev, ...config }));
+        if (arts && arts.length > 0) setArticles(arts);
+        if (cats && cats.length > 0) setCategories(cats);
+        if (resEntries && resEntries.length > 0) setResearchEntries(resEntries);
+        if (expTopics && expTopics.length > 0) setExploreTopics(expTopics);
       } catch (err) {
-        console.warn('Load site config error:', err);
+        console.warn('Load initial public data error:', err);
       }
     }
-    loadSiteConfig();
+    loadInitialPublicData();
   }, []);
 
   // 4. Dynamic Favicon Sync based on uploaded logo image
@@ -155,47 +178,19 @@ export default function App() {
     }
   }, [siteConfig.logoType, siteConfig.logoImageUrl]);
 
+  // 5. Admin Data Fetching (Only load admin management data when entering Admin CMS Portal)
   useEffect(() => {
-    async function loadViewData() {
-      try {
-        if (currentView.type === 'home') {
-          const [arts, resEntries, expTopics] = await Promise.all([
-            apiService.getArticles(),
-            apiService.getResearchEntries(),
-            apiService.getExploreTopics(),
-          ]);
-          if (arts && arts.length > 0) setArticles(arts);
-          if (resEntries && resEntries.length > 0) setResearchEntries(resEntries);
-          if (expTopics && expTopics.length > 0) setExploreTopics(expTopics);
-        } else if (currentView.type === 'news' || currentView.type === 'article-detail') {
-          const [arts, cats] = await Promise.all([
-            apiService.getArticles(),
-            apiService.getCategories(),
-          ]);
-          if (arts && arts.length > 0) setArticles(arts);
-          if (cats && cats.length > 0) setCategories(cats);
-        } else if (currentView.type === 'research-diary') {
-          const resEntries = await apiService.getResearchEntries();
-          if (resEntries && resEntries.length > 0) setResearchEntries(resEntries);
-        } else if (currentView.type === 'admin') {
-          const [arts, cats, resEntries, expTopics, adminUsers] = await Promise.all([
-            apiService.getArticles(),
-            apiService.getCategories(),
-            apiService.getResearchEntries(),
-            apiService.getExploreTopics(),
-            apiService.adminGetUsers().catch(() => null),
-          ]);
-          if (arts && arts.length > 0) setArticles(arts);
-          if (cats && cats.length > 0) setCategories(cats);
-          if (resEntries && resEntries.length > 0) setResearchEntries(resEntries);
-          if (expTopics && expTopics.length > 0) setExploreTopics(expTopics);
+    async function loadAdminData() {
+      if (currentView.type === 'admin') {
+        try {
+          const adminUsers = await apiService.adminGetUsers().catch(() => null);
           if (adminUsers && adminUsers.length > 0) setUsers(adminUsers);
+        } catch (err) {
+          console.warn('Load admin data error:', err);
         }
-      } catch (err) {
-        console.warn('Lazy data loading error:', err);
       }
     }
-    loadViewData();
+    loadAdminData();
   }, [currentView.type]);
 
   // 6. Dynamic Meta Tags & SEO Script Injector Effect
@@ -348,78 +343,83 @@ export default function App() {
 
       {/* 2. Main View Router */}
       <div className="flex-1">
-        {currentView.type === 'home' && (
-          <HomePage
-            articles={articles}
-            researchEntries={researchEntries}
-            exploreTopics={exploreTopics}
-            siteConfig={siteConfig}
-            onNavigate={handleNavigate}
-            onSelectTopic={(id) => setSelectedTopicId(id)}
-            isPlayingAudio={isPlayingAudio}
-          />
-        )}
+        <React.Suspense fallback={<LoadingFallback />}>
+          {currentView.type === 'home' && (
+            <HomePage
+              articles={articles}
+              researchEntries={researchEntries}
+              exploreTopics={exploreTopics}
+              siteConfig={siteConfig}
+              onNavigate={handleNavigate}
+              onSelectTopic={(id) => setSelectedTopicId(id)}
+              isPlayingAudio={isPlayingAudio}
+            />
+          )}
 
-        {currentView.type === 'news' && (
-          <NewsListPage
-            articles={articles}
-            initialCategory={currentView.category}
-            initialSearchQuery={currentView.searchQuery}
-            onNavigate={handleNavigate}
-          />
-        )}
+          {currentView.type === 'news' && (
+            <NewsListPage
+              articles={articles}
+              initialCategory={currentView.category}
+              initialSearchQuery={currentView.searchQuery}
+              onNavigate={handleNavigate}
+              siteConfig={siteConfig}
+            />
+          )}
 
-        {currentView.type === 'article-detail' && (
-          (() => {
-            const currentArticle = articles.find(a => a.slug === currentView.articleId || String(a.id) === String(currentView.articleId)) || articles[0];
-            const related = articles.filter(a => (a.slug !== currentArticle?.slug && String(a.id) !== String(currentArticle?.id)) && a.category === currentArticle?.category);
-            return (
-              <ArticleDetailPage
-                article={currentArticle}
-                relatedArticles={related}
-                onNavigate={handleNavigate}
-                isPlayingAudio={isPlayingAudio}
-              />
-            );
-          })()
-        )}
+          {currentView.type === 'article-detail' && (
+            (() => {
+              const currentArticle = articles.find(a => a.slug === currentView.articleId || String(a.id) === String(currentView.articleId)) || articles[0];
+              const related = articles.filter(a => (a.slug !== currentArticle?.slug && String(a.id) !== String(currentArticle?.id)) && a.category === currentArticle?.category);
+              return (
+                <ArticleDetailPage
+                  article={currentArticle}
+                  relatedArticles={related}
+                  onNavigate={handleNavigate}
+                  isPlayingAudio={isPlayingAudio}
+                />
+              );
+            })()
+          )}
 
-        {currentView.type === 'about' && (
-          <AboutPage
-            onNavigate={handleNavigate}
-            isPlayingAudio={isPlayingAudio}
-          />
-        )}
+          {currentView.type === 'about' && (
+            <AboutPage
+              onNavigate={handleNavigate}
+              isPlayingAudio={isPlayingAudio}
+              siteConfig={siteConfig}
+            />
+          )}
 
-        {currentView.type === 'research-diary' && (
-          <ResearchDiaryPage
-            entries={researchEntries}
-            selectedId={currentView.selectedId}
-            onNavigate={handleNavigate}
-            isPlayingAudio={isPlayingAudio}
-          />
-        )}
+          {currentView.type === 'research-diary' && (
+            <ResearchDiaryPage
+              entries={researchEntries}
+              selectedId={currentView.selectedId}
+              onNavigate={handleNavigate}
+              isPlayingAudio={isPlayingAudio}
+              siteConfig={siteConfig}
+            />
+          )}
 
-        {currentView.type === 'admin' && currentUser && (
-          <AdminPortal
-            section={currentView.section}
-            articles={articles}
-            users={users}
-            categories={categories}
-            researchEntries={researchEntries}
-            exploreTopics={exploreTopics}
-            siteConfig={siteConfig}
-            currentUser={currentUser}
-            onUpdateArticles={setArticles}
-            onUpdateUsers={setUsers}
-            onUpdateCategories={setCategories}
-            onUpdateResearchEntries={setResearchEntries}
-            onUpdateExploreTopics={setExploreTopics}
-            onUpdateSiteConfig={setSiteConfig}
-            onNavigate={handleNavigate}
-            onLogout={handleLogout}
-          />
-        )}
+          {currentView.type === 'admin' && currentUser && (
+            <AdminPortal
+              section={currentView.section}
+              articles={articles}
+              users={users}
+              categories={categories}
+              researchEntries={researchEntries}
+              exploreTopics={exploreTopics}
+              siteConfig={siteConfig}
+              currentUser={currentUser}
+              onUpdateArticles={setArticles}
+              onUpdateUsers={setUsers}
+              onUpdateCategories={setCategories}
+              onUpdateResearchEntries={setResearchEntries}
+              onUpdateExploreTopics={setExploreTopics}
+              onUpdateSiteConfig={setSiteConfig}
+              onNavigate={handleNavigate}
+              onLogout={handleLogout}
+            />
+          )}
+        </React.Suspense>
       </div>
 
       {/* 3. Client Footer (Hidden in Admin Portal) */}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Article, ViewState } from '../types';
 import { Calendar, Clock, ArrowLeft, Share2, Bookmark, Music, Play, Pause, Eye, Tag, Sparkles, ArrowRight } from 'lucide-react';
 import { audioPlayer } from '../utils/audioSynth';
+import { formatHtmlContent } from '../utils/formatHtml';
 
 interface ArticleDetailPageProps {
   article: Article;
@@ -178,20 +179,10 @@ export const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
       {/* 5. Rich Body Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 space-y-6 text-[#382D26] leading-relaxed text-base sm:text-lg">
         
-        {Array.isArray(article.content) ? (
-          article.content.map((paragraph, index) => (
-            <div
-              key={index}
-              className="leading-relaxed prose max-w-none text-[#382D26]"
-              dangerouslySetInnerHTML={{ __html: paragraph }}
-            />
-          ))
-        ) : (
-          <div
-            className="leading-relaxed prose max-w-none text-[#382D26]"
-            dangerouslySetInnerHTML={{ __html: article.content || '' }}
-          />
-        )}
+        <div
+          className="leading-relaxed prose max-w-none text-[#382D26] [&_p]:mb-4 [&_img]:rounded-xl [&_img]:my-4 [&_video]:rounded-xl [&_video]:w-full [&_video]:my-4 [&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:rounded-xl [&_table]:w-full [&_table]:border-collapse [&_th]:p-2.5 [&_th]:border [&_th]:border-[#E8DFC8] [&_th]:bg-[#FAF4EB] [&_td]:p-2.5 [&_td]:border [&_td]:border-[#E8DFC8]"
+          dangerouslySetInnerHTML={{ __html: formatHtmlContent(article.content) }}
+        />
 
         {/* Pull Quote */}
         {article.quote && (

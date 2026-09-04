@@ -26,13 +26,21 @@ export default defineConfig(() => {
       },
     },
     build: {
-      chunkSizeWarningLimit: 2000,
+      chunkSizeWarningLimit: 1000,
       rollupOptions: {
         output: {
-          manualChunks: {
-            'vendor-react': ['react', 'react-dom'],
-            'vendor-icons': ['lucide-react'],
-            'vendor-axios': ['axios'],
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('@tiptap') || id.includes('reactjs-tiptap-editor')) {
+                return 'vendor-editor';
+              }
+              if (id.includes('antd') || id.includes('@ant-design') || id.includes('motion')) {
+                return 'vendor-ui';
+              }
+              if (id.includes('lucide-react')) {
+                return 'vendor-icons';
+              }
+            }
           },
         },
       },

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TeamMember } from '../types';
 import { apiService } from '../services/apiService';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { getOptimizedImageUrl } from '../utils/imageOptimizer';
 
 interface HomeTeamSectionProps {
   initialMembers?: TeamMember[];
@@ -13,30 +14,31 @@ export const HomeTeamSection: React.FC<HomeTeamSectionProps> = ({ initialMembers
   const [startIndex, setStartIndex] = useState(0);
 
   useEffect(() => {
-    let isMounted = true;
-    const loadMembers = async () => {
-      try {
-        const data = await apiService.getTeamMembers();
-        if (isMounted && data && data.length > 0) {
-          setMembers(data);
-        }
-      } catch (err) {
-        console.error('Failed to load team members for Homepage:', err);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
+    if (initialMembers && initialMembers.length > 0) {
+      setMembers(initialMembers);
+      setLoading(false);
+    }
+  }, [initialMembers]);
 
+  useEffect(() => {
+    let isMounted = true;
     if (!initialMembers || initialMembers.length === 0) {
-      loadMembers();
+      setLoading(true);
+      apiService.getTeamMembers()
+        .then((data) => {
+          if (isMounted && data && data.length > 0) {
+            setMembers(data);
+          }
+        })
+        .catch((err) => console.error('Failed to load team members for Homepage:', err))
+        .finally(() => {
+          if (isMounted) setLoading(false);
+        });
     } else {
       setLoading(false);
     }
-
-    return () => {
-      isMounted = false;
-    };
-  }, [initialMembers]);
+    return () => { isMounted = false; };
+  }, []);
 
   const displayMembers: TeamMember[] = members;
 
@@ -113,10 +115,13 @@ export const HomeTeamSection: React.FC<HomeTeamSectionProps> = ({ initialMembers
                 <div className="relative mb-4">
                   <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full overflow-hidden border-4 border-white shadow-lg bg-stone-200 group-hover:scale-105 group-hover:border-[#007f32] transition-all duration-300">
                     <img
-                      src={member.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80'}
+                      src={getOptimizedImageUrl(member.avatar, 300, 75) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=75'}
                       alt={member.name}
                       className="w-full h-full object-cover"
                       loading="lazy"
+                      decoding="async"
+                      width={150}
+                      height={150}
                     />
                   </div>
                 </div>

@@ -52,11 +52,31 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     headline: '',
     subtitle: '',
     introText: '',
-    imageUrl: '',
+    imageUrl: '/images/default_banner.jpg',
     buttonText: '',
     buttonLink: '',
     quote: '',
-    slides: []
+    slides: [],
+    pageBanners: {
+      news: {
+        tagline: 'Thông tin & Truyền thông',
+        title: 'Tin tức & Hoạt động di sản',
+        description: 'Cập nhật toàn diện các sự kiện lễ hội, đề án bảo tồn, chính sách đãi ngộ nghệ nhân và các câu chuyện văn hóa đậm tình Kinh Bắc.',
+        bgImage: 'https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1200&q=75',
+      },
+      research: {
+        tagline: 'Tư liệu điền dã & Khảo sát thực địa',
+        title: 'Nhật ký nghiên cứu di sản',
+        description: 'Hành trình ghi nhận thực địa, phỏng vấn nghệ nhân tiền bối, số hóa tư liệu âm thanh cổ và phục dựng không gian diễn xướng Quan họ Kinh Bắc.',
+        bgImage: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=75',
+      },
+      about: {
+        tagline: 'Giữ mạch di sản – Khơi mạch tương lai',
+        title: 'Về dự án Mạch Quan Họ',
+        description: '"Quan họ là câu ca kết nối cội nguồn quá khứ, nhịp thở hiện tại và mạch nguồn tương lai của vùng đất di sản Kinh Bắc."',
+        bgImage: '/images/quan_ho_thuyen_rong.jpg',
+      },
+    },
   },
   contactEmail: 'lienhe@machquanho.vn',
   contactPhone: '(0222) 382 1234',

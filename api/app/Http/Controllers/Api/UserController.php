@@ -3,83 +3,105 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Services\UserService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
+    public function __construct(protected UserService $userService)
+    {
+    }
+
     public function adminGetData(Request $request)
     {
-        $query = User::query();
+        try {
+            $result = $this->userService->getAdminUsers($request->all());
 
-        if ($request->filled('keyword')) {
-            $keyword = $request->input('keyword');
-            $query->where('name', 'LIKE', "%{$keyword}%")
-                  ->orWhere('email', 'LIKE', "%{$keyword}%");
+            return response()->json([
+                'status' => 'success',
+                'data' => $result['data'],
+                'total' => $result['total'],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('UserController@adminGetData error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Lỗi hệ thống khi tải danh sách người dùng: ' . $e->getMessage(),
+            ], 500);
         }
-
-        $users = $query->orderBy('id', 'desc')->get();
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $users,
-            'total' => $users->count(),
-        ]);
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:100',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:100',
+                'email' => 'required|email|unique:users,email',
+                'password' => 'required|string|min:6',
+            ]);
 
-        $validated['password'] = Hash::make($validated['password']);
+            $user = $this->userService->createUser($validated);
 
-        $user = User::create($validated);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Tạo người dùng thành công',
-            'data' => $user,
-        ], 201);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Tạo người dùng thành công',
+                'data' => $user,
+            ], 201);
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            Log::error('UserController@store error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Lỗi hệ thống khi tạo người dùng: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function update(Request $request, $id)
     {
-        $user = User::findOrFail($id);
+        try {
+            $validated = $request->validate([
+                'name' => 'sometimes|required|string|max:100',
+                'email' => 'sometimes|required|email|unique:users,email,' . $id,
+                'password' => 'nullable|string|min:6',
+            ]);
 
-        $validated = $request->validate([
-            'name' => 'sometimes|required|string|max:100',
-            'email' => 'sometimes|required|email|unique:users,email,' . $id,
-            'password' => 'nullable|string|min:6',
-        ]);
+            $user = $this->userService->updateUser($id, $validated);
 
-        if (!empty($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
-        } else {
-            unset($validated['password']);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Cập nhật người dùng thành công',
+                'data' => $user,
+            ]);
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            Log::error('UserController@update error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Lỗi hệ thống khi cập nhật người dùng: ' . $e->getMessage(),
+            ], 500);
         }
-
-        $user->update($validated);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Cập nhật người dùng thành công',
-            'data' => $user,
-        ]);
     }
 
     public function destroy($id)
     {
-        $user = User::findOrFail($id);
-        $user->delete();
+        try {
+            $this->userService->delete($id);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Xóa người dùng thành công',
-        ]);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Xóa người dùng thành công',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('UserController@destroy error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Lỗi hệ thống khi xóa người dùng: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

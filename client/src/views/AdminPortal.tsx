@@ -26,6 +26,7 @@ import { UserFormModal } from './admin/modals/UserFormModal';
 import { CategoryFormModal } from './admin/modals/CategoryFormModal';
 import { AdminArticleEditorPage } from './admin/pages/AdminArticleEditorPage';
 import { AdminResearchEditorPage } from './admin/pages/AdminResearchEditorPage';
+import { slugify } from '../utils/slugify';
 
 interface AdminPortalProps {
   section: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'footer' | 'seo' | 'scripts';
@@ -310,30 +311,79 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
   // Category State & Handlers
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<CategoryInfo | null>(null);
   const [newCatName, setNewCatName] = useState('');
+  const [newCatSlug, setNewCatSlug] = useState('');
   const [newCatColor, setNewCatColor] = useState('#8C2320');
   const [newCatDesc, setNewCatDesc] = useState('');
+  const [isSlugUserEdited, setIsSlugUserEdited] = useState(false);
 
-  const handleAddCategory = async (e: React.FormEvent) => {
+  const handleOpenAddCategory = () => {
+    setEditingCategory(null);
+    setNewCatName('');
+    setNewCatSlug('');
+    setNewCatColor('#8C2320');
+    setNewCatDesc('');
+    setIsSlugUserEdited(false);
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleOpenEditCategory = (cat: CategoryInfo) => {
+    setEditingCategory(cat);
+    setNewCatName(cat.name);
+    setNewCatSlug(cat.slug);
+    setNewCatColor(cat.color || '#8C2320');
+    setNewCatDesc(cat.description || '');
+    setIsSlugUserEdited(true);
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleCatNameChange = (name: string) => {
+    setNewCatName(name);
+    if (!isSlugUserEdited) {
+      setNewCatSlug(slugify(name));
+    }
+  };
+
+  const handleCatSlugChange = (slug: string) => {
+    setIsSlugUserEdited(true);
+    setNewCatSlug(slug);
+  };
+
+  const handleSaveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCatName.trim()) return;
+    const finalSlug = newCatSlug.trim() || slugify(newCatName);
     setIsSubmitting(true);
     try {
-      await apiService.adminCreateCategory({
-        name: newCatName as ArticleCategory,
-        slug: newCatName.toLowerCase().replace(/\s+/g, '-'),
-        color: newCatColor,
-        description: newCatDesc || 'Chuyên mục mới'
-      });
+      if (editingCategory) {
+        await apiService.adminUpdateCategory(editingCategory.id, {
+          name: newCatName as ArticleCategory,
+          slug: finalSlug,
+          color: newCatColor,
+          description: newCatDesc
+        });
+        showToast('Đã cập nhật chuyên mục!');
+      } else {
+        await apiService.adminCreateCategory({
+          name: newCatName as ArticleCategory,
+          slug: finalSlug,
+          color: newCatColor,
+          description: newCatDesc || 'Chuyên mục mới'
+        });
+        showToast('Đã thêm chuyên mục mới!');
+      }
       const refreshed = await apiService.adminGetCategories();
       onUpdateCategories(refreshed);
       setNewCatName('');
+      setNewCatSlug('');
       setNewCatDesc('');
+      setIsSlugUserEdited(false);
+      setEditingCategory(null);
       setIsCategoryModalOpen(false);
-      showToast('Đã thêm chuyên mục mới!');
     } catch (err) {
-      console.error('Add category error:', err);
-      showToast('Lỗi khi thêm chuyên mục.', 'error');
+      console.error('Save category error:', err);
+      showToast(editingCategory ? 'Lỗi khi cập nhật chuyên mục.' : 'Lỗi khi thêm chuyên mục.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -702,7 +752,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           {activeTab === 'categories' && (
             <AdminCategoriesTab
               categories={categories}
-              onOpenAddCategory={() => setIsCategoryModalOpen(true)}
+              onOpenAddCategory={handleOpenAddCategory}
+              onOpenEditCategory={handleOpenEditCategory}
               onDeleteCategory={handleDeleteCategory}
             />
           )}
@@ -806,15 +857,22 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
       <CategoryFormModal
         isOpen={isCategoryModalOpen}
+        editingCategory={editingCategory}
         newCatName={newCatName}
+        newCatSlug={newCatSlug}
         newCatColor={newCatColor}
         newCatDesc={newCatDesc}
         isSubmitting={isSubmitting}
-        setNewCatName={setNewCatName}
+        setNewCatName={handleCatNameChange}
+        setNewCatSlug={handleCatSlugChange}
         setNewCatColor={setNewCatColor}
         setNewCatDesc={setNewCatDesc}
-        onClose={() => setIsCategoryModalOpen(false)}
-        onSubmit={handleAddCategory}
+        onClose={() => {
+          setIsCategoryModalOpen(false);
+          setIsSlugUserEdited(false);
+          setEditingCategory(null);
+        }}
+        onSubmit={handleSaveCategory}
       />
 
       <ConfirmModal

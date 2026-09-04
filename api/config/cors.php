@@ -20,9 +20,15 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
+        'https://machquanho.com',
+        'http://machquanho.com',
+        'https://www.machquanho.com',
+        'http://www.machquanho.com',
         'https://machquanho.blueflare.site',
         'http://machquanho.blueflare.site',
+        'http://localhost:3000',
         'http://localhost:5173',
+        'http://127.0.0.1:3000',
         'http://127.0.0.1:5173',
         '*',
     ],

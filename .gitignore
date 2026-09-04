@@ -5,6 +5,7 @@ api/vendor/
 # Build outputs
 client/dist/
 client/dist-ssr/
+*.zip
 
 # Environment files
 api/.env

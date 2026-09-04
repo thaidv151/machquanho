@@ -66,6 +66,15 @@ Khi phát triển hoặc mở rộng 1 tính năng mới (ví dụ: `News`, `Pro
 - **Search Query**: Chuỗi tìm kiếm sử dụng `LIKE %query%` trên các trường tiêu đề, slug, tóm tắt.
 - **Join / Relationships**: Sử dụng Eloquent Relationship (`belongsTo`, `hasMany`) hoặc LINQ join với `AsNoTracking()` cho các truy vấn chỉ đọc.
 
+### 3.3. Quy chuẩn Kiến trúc Backend (Repository - Service Pattern & Dependency Injection)
+- **Bắt buộc phân tầng 3 lớp (3-tier Architecture)**:
+  - **Controller (`app/Http/Controllers/Api/`)**: Chỉ tiếp nhận Request/Validation và trả về Response JSON. **Controller chỉ được phép gọi đến Service tương ứng qua Dependency Injection trong `__construct`**. Nghiêm cấm Controller gọi trực tiếp Eloquent Model (như `Article::query()`, `Category::all()`).
+  - **Service (`app/Services/`)**: Nơi xử lý toàn bộ nghiệp vụ (Business Logic), cache, xử lý dữ liệu đầu vào. **Service chỉ được phép gọi đến Repository tương ứng qua Dependency Injection trong `__construct`**.
+  - **Repository (`app/Repositories/`)**: Nơi duy nhất tương tác trực tiếp với Eloquent Model / Database (ORM queries, DB Builder).
+- **Phụ thuộc qua Base Class**:
+  - Mọi Repository con bắt buộc kế thừa từ `App\Repositories\BaseRepository`.
+  - Mọi Service con bắt buộc kế thừa từ `App\Services\BaseService`.
+
 ---
 
 ## 4. Quy chuẩn Frontend Client (React / Next.js / Vite SPA)

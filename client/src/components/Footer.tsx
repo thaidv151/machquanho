@@ -1,7 +1,7 @@
 import React from 'react';
 import { SocialPlatformIcon } from './SocialPlatformIcon';
 import { ViewState, SiteConfig, SiteFooterConfig } from '../types';
-import { Mail, Phone, MapPin, Facebook, Youtube, Send } from 'lucide-react';
+import { Mail, Phone, MapPin } from 'lucide-react';
 import { DEFAULT_SITE_CONFIG } from '../data/mockData';
 
 interface FooterProps {
@@ -11,6 +11,17 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate, siteConfig }) => {
   const footerConfig: SiteFooterConfig = siteConfig.footer || DEFAULT_SITE_CONFIG.footer!;
+
+  const quickLinksList = Array.isArray(footerConfig.quickLinks) ? footerConfig.quickLinks : DEFAULT_SITE_CONFIG.footer!.quickLinks;
+  const socialPlatformsList = Array.isArray(footerConfig.socialPlatforms) && footerConfig.socialPlatforms.length > 0
+    ? footerConfig.socialPlatforms
+    : [
+        { id: 'sp-1', name: 'Facebook', url: siteConfig.socialLinks?.facebook || '#', iconType: 'facebook' },
+        { id: 'sp-2', name: 'YouTube', url: siteConfig.socialLinks?.youtube || '#', iconType: 'youtube' },
+        { id: 'sp-3', name: 'TikTok', url: siteConfig.socialLinks?.tiktok || '#', iconType: 'tiktok' },
+        { id: 'sp-4', name: 'Email', url: `mailto:${footerConfig.email || 'machquanho@gmail.com'}`, iconType: 'email' }
+      ];
+  const bottomLinksList = Array.isArray(footerConfig.bottomLinks) ? footerConfig.bottomLinks : DEFAULT_SITE_CONFIG.footer!.bottomLinks;
 
   const handleLinkClick = (url: string) => {
     if (!url || url === '#') return;
@@ -70,7 +81,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, siteConfig }) => {
               {footerConfig.quickLinksTitle || 'LIÊN KẾT NHANH'}
             </h4>
             <ul className="space-y-2 text-xs">
-              {(footerConfig.quickLinks || []).map((link) => (
+              {quickLinksList.map((link) => (
                 <li key={link.id}>
                   <button
                     onClick={() => handleLinkClick(link.url)}
@@ -89,15 +100,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, siteConfig }) => {
               {footerConfig.socialLinksTitle || 'KẾT NỐI VỚI CHÚNG TÔI'}
             </h4>
             <div className="flex flex-wrap items-center gap-2.5 pt-1">
-              {(footerConfig.socialPlatforms && footerConfig.socialPlatforms.length > 0
-                ? footerConfig.socialPlatforms
-                : [
-                    { id: 'sp-1', name: 'Facebook', url: siteConfig.socialLinks?.facebook || '#', iconType: 'facebook' },
-                    { id: 'sp-2', name: 'YouTube', url: siteConfig.socialLinks?.youtube || '#', iconType: 'youtube' },
-                    { id: 'sp-3', name: 'TikTok', url: siteConfig.socialLinks?.tiktok || '#', iconType: 'tiktok' },
-                    { id: 'sp-4', name: 'Email', url: `mailto:${footerConfig.email || 'machquanho@gmail.com'}`, iconType: 'email' }
-                  ]
-              ).map((item) => (
+              {socialPlatformsList.map((item) => (
                 <a
                   key={item.id}
                   href={item.url || '#'}
@@ -144,7 +147,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, siteConfig }) => {
           <p>{footerConfig.copyrightText || '© 2026 Mạch Quan Họ. All rights reserved.'}</p>
 
           <div className="flex items-center space-x-3">
-            {(footerConfig.bottomLinks || []).map((link, index) => (
+            {bottomLinksList.map((link, index) => (
               <React.Fragment key={link.id}>
                 {index > 0 && <span className="text-white/30">|</span>}
                 <button

@@ -1,13 +1,44 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ResearchEntry, ViewState } from '../types';
 import { BookOpen, MapPin, Calendar, ArrowRight, Mic, Camera, Map, Archive, Users } from 'lucide-react';
+import { apiService } from '../services/apiService';
 
 interface HomeTimelineProps {
-  entries: ResearchEntry[];
+  entries?: ResearchEntry[];
   onNavigate: (view: ViewState) => void;
 }
 
-export const HomeTimeline: React.FC<HomeTimelineProps> = ({ entries, onNavigate }) => {
+export const HomeTimeline: React.FC<HomeTimelineProps> = ({ entries: initialEntries, onNavigate }) => {
+  const [entries, setEntries] = useState<ResearchEntry[]>(initialEntries || []);
+  const [loading, setLoading] = useState(!initialEntries || initialEntries.length === 0);
+
+  useEffect(() => {
+    if (initialEntries && initialEntries.length > 0) {
+      setEntries(initialEntries);
+      setLoading(false);
+    }
+  }, [initialEntries]);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (!initialEntries || initialEntries.length === 0) {
+      setLoading(true);
+      apiService.getResearchEntries()
+        .then((data) => {
+          if (isMounted && data && data.length > 0) {
+            setEntries(data);
+          }
+        })
+        .catch((err) => console.warn('Failed to load research entries in HomeTimeline:', err))
+        .finally(() => {
+          if (isMounted) setLoading(false);
+        });
+    } else {
+      setLoading(false);
+    }
+    return () => { isMounted = false; };
+  }, []);
+
   const getIcon = (type: string) => {
     switch (type) {
       case 'mic': return Mic;
@@ -51,66 +82,78 @@ export const HomeTimeline: React.FC<HomeTimelineProps> = ({ entries, onNavigate 
         </button>
       </div>
 
-      {/* Timeline Steps */}
-      <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-[#D4A25A]/50">
-        {displayedEntries.map((entry) => {
-          const Icon = getIcon(entry.iconType);
-          return (
-            <div 
-              key={entry.id}
-              onClick={() => onNavigate({ type: 'research-diary', selectedId: entry.id })}
-              className="relative group cursor-pointer"
-            >
-              {/* Timeline Dot Icon */}
-              <div className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-[#F2E9DD] border-2 border-[#114D3A] group-hover:bg-[#114D3A] group-hover:text-white flex items-center justify-center transition-colors shadow-xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#114D3A] group-hover:bg-white transition-colors" />
-              </div>
-
-              {/* Card Body */}
-              <div className="bg-white p-4 rounded-xl border border-[#E3D5C3] group-hover:border-[#114D3A] group-hover:shadow-md transition-all">
-                {/* Meta Header */}
-                <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
-                  <div className="flex items-center space-x-1.5">
-                    <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-[#E3D5C3]/60 text-[#114D3A] border border-[#D4A25A]/40">
-                      {entry.phase}
-                    </span>
-                    {entry.sortOrder !== undefined && (
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#FAF8F5] text-[#4A3B32] border border-[#E8DFC8]">
-                        #{entry.sortOrder}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-1 text-[11px] text-[#8C6B50]">
-                    <Calendar className="w-3 h-3 text-[#D4A25A]" />
-                    <span>{entry.date}</span>
-                  </div>
-                </div>
-
-                {/* Title */}
-                <h4 className="font-serif-culture text-sm sm:text-base font-bold text-[#2D241E] group-hover:text-[#114D3A] transition-colors line-clamp-2">
-                  {entry.title}
-                </h4>
-
-                {/* Location */}
-                <div className="flex items-center space-x-1 text-xs text-[#7A6B60] mt-1.5">
-                  <MapPin className="w-3 h-3 text-[#8C2F2F] shrink-0" />
-                  <span className="truncate">{entry.location}</span>
-                </div>
-
-                {/* Summary */}
-                {entry.summary && (
-                  <p className="text-xs text-[#5C4E46] mt-2 line-clamp-2 leading-relaxed">
-                    {entry.summary}
-                  </p>
-                )}
-              </div>
+      {/* Timeline Steps / Skeleton Loading */}
+      {loading ? (
+        <div className="space-y-4 animate-pulse">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="bg-white/80 p-4 rounded-xl border border-[#E3D5C3] space-y-2">
+              <div className="h-4 bg-[#E3D5C3]/60 rounded w-1/3"></div>
+              <div className="h-4 bg-[#E3D5C3]/60 rounded w-3/4"></div>
+              <div className="h-3 bg-[#E3D5C3]/40 rounded w-1/2"></div>
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-[#D4A25A]/50">
+          {displayedEntries.map((entry) => {
+            const Icon = getIcon(entry.iconType);
+            return (
+              <div 
+                key={entry.id}
+                onClick={() => onNavigate({ type: 'research-diary', selectedId: entry.id })}
+                className="relative group cursor-pointer"
+              >
+                {/* Timeline Dot Icon */}
+                <div className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-[#F2E9DD] border-2 border-[#114D3A] group-hover:bg-[#114D3A] group-hover:text-white flex items-center justify-center transition-colors shadow-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#114D3A] group-hover:bg-white transition-colors" />
+                </div>
+
+                {/* Card Body */}
+                <div className="bg-white p-4 rounded-xl border border-[#E3D5C3] group-hover:border-[#114D3A] group-hover:shadow-md transition-all">
+                  {/* Meta Header */}
+                  <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
+                    <div className="flex items-center space-x-1.5">
+                      <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-[#E3D5C3]/60 text-[#114D3A] border border-[#D4A25A]/40">
+                        {entry.phase}
+                      </span>
+                      {entry.sortOrder !== undefined && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#FAF8F5] text-[#4A3B32] border border-[#E8DFC8]">
+                          #{entry.sortOrder}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-1 text-[11px] text-[#8C6B50]">
+                      <Calendar className="w-3 h-3 text-[#D4A25A]" />
+                      <span>{entry.date}</span>
+                    </div>
+                  </div>
+
+                  {/* Title */}
+                  <h4 className="font-serif-culture text-sm sm:text-base font-bold text-[#2D241E] group-hover:text-[#114D3A] transition-colors line-clamp-2">
+                    {entry.title}
+                  </h4>
+
+                  {/* Location */}
+                  <div className="flex items-center space-x-1 text-xs text-[#7A6B60] mt-1.5">
+                    <MapPin className="w-3 h-3 text-[#8C2F2F] shrink-0" />
+                    <span className="truncate">{entry.location}</span>
+                  </div>
+
+                  {/* Summary */}
+                  {entry.summary && (
+                    <p className="text-xs text-[#5C4E46] mt-2 line-clamp-2 leading-relaxed">
+                      {entry.summary}
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Footer Callout if count > 4 */}
-      {hasMore && (
+      {!loading && hasMore && (
         <div className="mt-6 pt-4 border-t border-[#E3D5C3] text-center">
           <button
             onClick={() => onNavigate({ type: 'research-diary' })}

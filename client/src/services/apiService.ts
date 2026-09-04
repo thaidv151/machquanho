@@ -50,11 +50,22 @@ function safeParseJson(data: any) {
 }
 
 function normalizeSiteConfig(config: any): SiteConfig {
-  if (!config) return config;
-  
+  if (!config) return DEFAULT_SITE_CONFIG;
+
   const rawBanner = safeParseJson(config.banner);
   const rawHeader = safeParseJson(config.header) || safeParseJson(config.headerConfig) || safeParseJson(config.header_config) || safeParseJson(rawBanner?.header_config);
+  const rawFooter = safeParseJson(config.footer);
   const rawSocial = safeParseJson(config.socialLinks) || safeParseJson(config.social_links);
+
+  const navItemsRaw = safeParseJson(rawHeader?.navItems) || rawHeader?.navItems;
+  const slidesRaw = safeParseJson(rawBanner?.slides) || rawBanner?.slides;
+  const buttonsRaw = safeParseJson(rawBanner?.buttons) || rawBanner?.buttons;
+
+  const quickLinksRaw = safeParseJson(rawFooter?.quickLinks) || rawFooter?.quickLinks;
+  const socialPlatformsRaw = safeParseJson(rawFooter?.socialPlatforms) || rawFooter?.socialPlatforms;
+  const bottomLinksRaw = safeParseJson(rawFooter?.bottomLinks) || rawFooter?.bottomLinks;
+
+  const defaultFooter = DEFAULT_SITE_CONFIG.footer!;
 
   return {
     siteName: config.siteName || config.site_name || 'MẠCH QUAN HỌ',
@@ -66,14 +77,9 @@ function normalizeSiteConfig(config: any): SiteConfig {
       topNoticeText: rawHeader?.topNoticeText || 'Di sản Văn hóa Phi vật thể đại diện của Nhân loại - UNESCO 2009',
       topSubText: rawHeader?.topSubText || 'Kinh Bắc - Vùng đất địa linh nhân kiệt',
       topAudioCtaText: rawHeader?.topAudioCtaText || 'Nghe Quan họ',
-      navItems: Array.isArray(rawHeader?.navItems) && rawHeader.navItems.length > 0
-        ? rawHeader.navItems
-        : [
-            { id: 'nav-1', label: 'Trang chủ', viewType: 'home', icon: 'Home' },
-            { id: 'nav-2', label: 'Tin tức & Hoạt động', viewType: 'news', icon: 'Newspaper' },
-            { id: 'nav-3', label: 'Nhật ký nghiên cứu', viewType: 'research-diary', icon: 'BookOpen' },
-            { id: 'nav-4', label: 'Về chúng tôi', viewType: 'about', icon: 'Users' }
-          ]
+      navItems: Array.isArray(navItemsRaw) && navItemsRaw.length > 0
+        ? navItemsRaw.map((n: any) => typeof n === 'string' ? safeParseJson(n) : n).filter(Boolean)
+        : DEFAULT_SITE_CONFIG.header!.navItems
     },
     banner: {
       mode: rawBanner?.mode || 'slider',
@@ -92,8 +98,9 @@ function normalizeSiteConfig(config: any): SiteConfig {
       buttonText: rawBanner?.buttonText || '',
       buttonLink: rawBanner?.buttonLink || '',
       quote: rawBanner?.quote || '',
-      buttons: Array.isArray(rawBanner?.buttons) ? rawBanner.buttons : [],
-      slides: Array.isArray(rawBanner?.slides) ? rawBanner.slides : []
+      buttons: Array.isArray(buttonsRaw) ? buttonsRaw.map((b: any) => typeof b === 'string' ? safeParseJson(b) : b).filter(Boolean) : [],
+      slides: Array.isArray(slidesRaw) ? slidesRaw.map((s: any) => typeof s === 'string' ? safeParseJson(s) : s).filter(Boolean) : [],
+      pageBanners: rawBanner?.pageBanners || DEFAULT_SITE_CONFIG.banner?.pageBanners
     },
     contactEmail: config.contactEmail || config.contact_email || 'lienhe@machquanho.vn',
     contactPhone: config.contactPhone || config.contact_phone || '(0222) 382 1234',
@@ -102,7 +109,28 @@ function normalizeSiteConfig(config: any): SiteConfig {
       facebook: 'https://facebook.com',
       youtube: 'https://youtube.com',
       tiktok: 'https://tiktok.com'
-    }
+    },
+    footer: {
+      tagline: rawFooter?.tagline || defaultFooter.tagline,
+      description: rawFooter?.description || defaultFooter.description,
+      quickLinksTitle: rawFooter?.quickLinksTitle || defaultFooter.quickLinksTitle,
+      quickLinks: Array.isArray(quickLinksRaw) && quickLinksRaw.length > 0
+        ? quickLinksRaw.map((l: any) => typeof l === 'string' ? safeParseJson(l) : l).filter(Boolean)
+        : defaultFooter.quickLinks,
+      socialLinksTitle: rawFooter?.socialLinksTitle || defaultFooter.socialLinksTitle,
+      socialPlatforms: Array.isArray(socialPlatformsRaw) && socialPlatformsRaw.length > 0
+        ? socialPlatformsRaw.map((s: any) => typeof s === 'string' ? safeParseJson(s) : s).filter(Boolean)
+        : defaultFooter.socialPlatforms,
+      contactTitle: rawFooter?.contactTitle || defaultFooter.contactTitle,
+      address: rawFooter?.address || config.address || defaultFooter.address,
+      email: rawFooter?.email || config.contactEmail || defaultFooter.email,
+      phone: rawFooter?.phone || config.contactPhone || defaultFooter.phone,
+      copyrightText: rawFooter?.copyrightText || defaultFooter.copyrightText,
+      bottomLinks: Array.isArray(bottomLinksRaw) && bottomLinksRaw.length > 0
+        ? bottomLinksRaw.map((b: any) => typeof b === 'string' ? safeParseJson(b) : b).filter(Boolean)
+        : defaultFooter.bottomLinks,
+    },
+    seo: safeParseJson(config.seo) || DEFAULT_SITE_CONFIG.seo
   };
 }
 
@@ -144,64 +172,119 @@ function normalizeUser(u: any): AdminUser {
   };
 }
 
+// In-memory API Request Cache (60s TTL) & Request Deduplication Map to prevent duplicate roundtrips
+const apiMemoryCache = new Map<string, { timestamp: number; data: any }>();
+const inFlightRequests = new Map<string, Promise<any>>();
+const CACHE_TTL_MS = 60000;
+
+function getCachedData<T>(key: string): T | null {
+  const cached = apiMemoryCache.get(key);
+  if (cached && (Date.now() - cached.timestamp < CACHE_TTL_MS)) {
+    return cached.data as T;
+  }
+  return null;
+}
+
+function setCachedData(key: string, data: any): void {
+  apiMemoryCache.set(key, { timestamp: Date.now(), data });
+}
+
+export function clearApiCache(): void {
+  apiMemoryCache.clear();
+  inFlightRequests.clear();
+}
+
+async function fetchDeduplicated<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
+  const cached = getCachedData<T>(key);
+  if (cached !== null) {
+    return cached;
+  }
+
+  if (inFlightRequests.has(key)) {
+    return inFlightRequests.get(key) as Promise<T>;
+  }
+
+  const promise = fetcher()
+    .then((data) => {
+      setCachedData(key, data);
+      inFlightRequests.delete(key);
+      return data;
+    })
+    .catch((err) => {
+      inFlightRequests.delete(key);
+      throw err;
+    });
+
+  inFlightRequests.set(key, promise);
+  return promise;
+}
+
 export const apiService = {
+  clearCache: clearApiCache,
+
   // --- Public Endpoints ---
   async getArticles(params?: { category?: string; searchQuery?: string; featured?: boolean }): Promise<Article[]> {
-    const res = await apiClient.get('/articles', { params });
-    const list = res.data.data || [];
-    return list.map(normalizeArticle);
+    const key = `getArticles_${JSON.stringify(params || {})}`;
+    return fetchDeduplicated(key, async () => {
+      const res = await apiClient.get('/articles', { params });
+      const list = (res.data.data || []).map(normalizeArticle);
+      return list.filter(a => a.status === 'Đã đăng');
+    });
   },
 
   async getArticleBySlugOrId(idOrSlug: string): Promise<Article> {
-    const res = await apiClient.get(`/articles/${idOrSlug}`);
-    return normalizeArticle(res.data.data);
+    const key = `getArticleBySlugOrId_${idOrSlug}`;
+    return fetchDeduplicated(key, async () => {
+      const res = await apiClient.get(`/articles/${idOrSlug}`);
+      return normalizeArticle(res.data.data);
+    });
   },
 
   async getCategories(): Promise<CategoryInfo[]> {
-    const res = await apiClient.get('/categories');
-    return (res.data.data || []).map((c: any) => ({ ...c, id: String(c.id) }));
+    return fetchDeduplicated('getCategories', async () => {
+      const res = await apiClient.get('/categories');
+      return (res.data.data || []).map((c: any) => ({ ...c, id: String(c.id) }));
+    });
   },
 
   async getResearchEntries(): Promise<ResearchEntry[]> {
-    const res = await apiClient.get('/research-entries');
-    return (res.data.data || []).map(normalizeResearchEntry);
+    return fetchDeduplicated('getResearchEntries', async () => {
+      const res = await apiClient.get('/research-entries');
+      return (res.data.data || []).map(normalizeResearchEntry);
+    });
   },
 
   async getArtisans(): Promise<Artisan[]> {
-    const res = await apiClient.get('/artisans');
-    return (res.data.data || []).map(normalizeArtisan);
+    return fetchDeduplicated('getArtisans', async () => {
+      const res = await apiClient.get('/artisans');
+      return (res.data.data || []).map(normalizeArtisan);
+    });
   },
 
   async getExploreTopics(): Promise<ExploreTopic[]> {
-    const res = await apiClient.get('/explore-topics');
-    return (res.data.data || []).map((t: any) => ({
-      ...t,
-      id: String(t.id),
-      details: Array.isArray(t.details) ? t.details : [],
-      highlights: Array.isArray(t.highlights) ? t.highlights : [],
-    }));
+    return fetchDeduplicated('getExploreTopics', async () => {
+      const res = await apiClient.get('/explore-topics');
+      return (res.data.data || []).map((t: any) => ({
+        ...t,
+        id: String(t.id),
+        details: Array.isArray(t.details) ? t.details : [],
+        highlights: Array.isArray(t.highlights) ? t.highlights : [],
+      }));
+    });
   },
 
   async getSiteConfig(): Promise<SiteConfig> {
-    try {
-      const res = await apiClient.get('/site-config');
-      if (res.data && res.data.data) {
-        const normalized = normalizeSiteConfig(res.data.data);
-        localStorage.setItem('mqh_site_config', JSON.stringify(normalized));
-        return normalized;
-      }
-    } catch (err) {
-      console.warn('API /site-config fetch failed, using local/default:', err);
-    }
-    const local = localStorage.getItem('mqh_site_config');
-    if (local) {
+    return fetchDeduplicated('getSiteConfig', async () => {
       try {
-        return JSON.parse(local);
-      } catch {
-        // ignore
+        const res = await apiClient.get('/site-config');
+        if (res.data && res.data.data) {
+          return normalizeSiteConfig(res.data.data);
+        }
+      } catch (err) {
+        console.warn('API /site-config fetch failed, using default:', err);
       }
-    }
-    return DEFAULT_SITE_CONFIG;
+      return DEFAULT_SITE_CONFIG;
+    });
   },
 
   // --- Auth Endpoints ---
@@ -214,6 +297,9 @@ export const apiService = {
   },
 
   async getMe(): Promise<AdminUser | null> {
+    const token = localStorage.getItem('mqh_jwt_token');
+    if (!token) return null;
+
     try {
       const res = await apiClient.get('/auth/me');
       return normalizeUser(res.data);
@@ -262,16 +348,19 @@ export const apiService = {
 
   async adminCreateCategory(cat: Partial<CategoryInfo>): Promise<CategoryInfo> {
     const res = await apiClient.post('/admin/categories', cat);
+    clearApiCache();
     return { ...res.data.data, id: String(res.data.data.id) };
   },
 
   async adminUpdateCategory(id: string | number, cat: Partial<CategoryInfo>): Promise<CategoryInfo> {
     const res = await apiClient.post(`/admin/categories/${id}/update`, cat);
+    clearApiCache();
     return { ...res.data.data, id: String(res.data.data.id) };
   },
 
   async adminDeleteCategory(id: string | number) {
     const res = await apiClient.post(`/admin/categories/${id}/delete`);
+    clearApiCache();
     return res.data;
   },
 
@@ -352,8 +441,10 @@ export const apiService = {
 
   // 5.5 Team Members
   async getTeamMembers(): Promise<TeamMember[]> {
-    const res = await apiClient.get('/team-members');
-    return (res.data.data || []).map(normalizeTeamMember);
+    return fetchDeduplicated('team_members_all', async () => {
+      const res = await apiClient.get('/team-members');
+      return (res.data.data || []).map(normalizeTeamMember);
+    });
   },
 
   async adminGetTeamMembers(payload?: any): Promise<TeamMember[]> {
@@ -399,10 +490,10 @@ export const apiService = {
       const res = await apiClient.post('/admin/site-config', config);
       normalizedConfig = normalizeSiteConfig(res.data.data);
     } catch (err) {
-      console.warn('API admin/site-config update failed, saving locally:', err);
+      console.warn('API admin/site-config update failed:', err);
       normalizedConfig = config as SiteConfig;
     }
-    localStorage.setItem('mqh_site_config', JSON.stringify(normalizedConfig));
+    setCachedData('site_config_full', normalizedConfig);
     return normalizedConfig;
   },
 
@@ -427,8 +518,8 @@ export const apiService = {
     return res.data;
   },
 
-  // 8. File Upload
-  async uploadImage(file: File): Promise<string> {
+  // 8. File Upload (Images, Videos, Audio)
+  async uploadFile(file: File): Promise<string> {
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -438,15 +529,24 @@ export const apiService = {
       if (res.data && res.data.url) {
         return res.data.url;
       }
-    } catch (err) {
-      console.warn('API upload failed, falling back to local FileReader Base64 Data URL:', err);
+    } catch (err: any) {
+      console.error('API file upload error:', err);
+      const isVideo = file.type.startsWith('video/') || /\.(mp4|webm|ogg|mov|mkv|avi|flv|wmv)$/i.test(file.name);
+      if (isVideo) {
+        throw new Error('Upload video lên máy chủ thất bại. Vui lòng kiểm tra dung lượng tệp hoặc kết nối server API.');
+      }
     }
+    // Fallback to Base64 data URL only for small images if server is offline
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);
       reader.onerror = (error) => reject(error);
       reader.readAsDataURL(file);
     });
+  },
+
+  async uploadImage(file: File): Promise<string> {
+    return this.uploadFile(file);
   },
 };
 

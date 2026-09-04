@@ -1,34 +1,84 @@
-import React, { useState } from 'react';
-import { ResearchEntry, ViewState } from '../types';
+import React, { useState, useEffect } from 'react';
+import { ResearchEntry, ViewState, SiteConfig } from '../types';
 import { BookOpen, MapPin, Calendar, Mic, Archive, Users, CheckCircle, Music, Play, Sparkles, ArrowLeft, Download, Volume2 } from 'lucide-react';
 import { audioPlayer } from '../utils/audioSynth';
+import { getOptimizedImageUrl } from '../utils/imageOptimizer';
+import { formatHtmlContent, hasHtmlContent } from '../utils/formatHtml';
+import { apiService } from '../services/apiService';
 
 interface ResearchDiaryPageProps {
-  entries: ResearchEntry[];
+  entries?: ResearchEntry[];
   selectedId?: string;
   onNavigate: (view: ViewState) => void;
   isPlayingAudio: boolean;
+  siteConfig?: SiteConfig;
 }
 
 export const ResearchDiaryPage: React.FC<ResearchDiaryPageProps> = ({
-  entries,
+  entries: initialEntries,
   selectedId,
   onNavigate,
-  isPlayingAudio
+  isPlayingAudio,
+  siteConfig
 }) => {
+  const [entries, setEntries] = useState<ResearchEntry[]>(initialEntries || []);
+  const [loading, setLoading] = useState(!initialEntries || initialEntries.length === 0);
+
+  useEffect(() => {
+    if (initialEntries && initialEntries.length > 0) {
+      setEntries(initialEntries);
+      setLoading(false);
+    }
+  }, [initialEntries]);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (!initialEntries || initialEntries.length === 0) {
+      setLoading(true);
+      apiService.getResearchEntries()
+        .then((data) => {
+          if (isMounted && data && data.length > 0) {
+            setEntries(data);
+          }
+        })
+        .catch((err) => console.warn('Failed to load research entries in ResearchDiaryPage:', err))
+        .finally(() => {
+          if (isMounted) setLoading(false);
+        });
+    } else {
+      setLoading(false);
+    }
+    return () => { isMounted = false; };
+  }, []);
+
   const [activeEntryId, setActiveEntryId] = useState<string>(selectedId || entries[0]?.id || '');
   const [filterPhase, setFilterPhase] = useState<string>('Tất cả');
+
+  // Update active entry ID when entries load or selectedId prop changes
+  useEffect(() => {
+    if (selectedId) {
+      setActiveEntryId(selectedId);
+    } else if (entries.length > 0 && !activeEntryId) {
+      setActiveEntryId(entries[0].id);
+    }
+  }, [selectedId, entries]);
+
+  const pageBanner = siteConfig?.banner?.pageBanners?.research;
+  const tagline = pageBanner?.tagline || 'Tư liệu điền dã & Khảo sát thực địa';
+  const title = pageBanner?.title || 'Nhật ký nghiên cứu di sản';
+  const description = pageBanner?.description || 'Hành trình ghi nhận thực địa, phỏng vấn nghệ nhân tiền bối, số hóa tư liệu âm thanh cổ và phục dựng không gian diễn xướng Quan họ Kinh Bắc.';
+  const bgImage = pageBanner?.bgImage || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=75';
 
   // Sort entries by sortOrder ASC (smallest STT first)
   const sortedEntries = [...entries].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 
-  const phases = ['Tất cả', 'Giai đoạn 1', 'Giai đoạn 2', 'Giai đoạn 3'];
+  const phases = ['Tất cả'];
 
   const filteredEntries = sortedEntries.filter(e => {
     return filterPhase === 'Tất cả' || e.phase === filterPhase;
   });
 
-  const activeEntry = sortedEntries.find(e => e.id === activeEntryId) || filteredEntries[0] || sortedEntries[0];
+  const activeEntry = sortedEntries.find(e => String(e.id) === String(activeEntryId)) || sortedEntries[0];
 
   // Helper to safely parse findings array
   const getFindingsArray = (entry?: ResearchEntry): string[] => {
@@ -50,45 +100,85 @@ export const ResearchDiaryPage: React.FC<ResearchDiaryPageProps> = ({
     return [];
   };
 
+  // Helper to safely parse and normalize Tiptap Editor HTML content
+  const getContentHtml = (content: any): string => {
+    if (!content) return '';
+    if (Array.isArray(content)) {
+      return content
+        .map((item) => {
+          if (typeof item !== 'string') return '';
+          const trimmed = item.trim();
+          if (trimmed.startsWith('<')) return trimmed;
+          return `<p>${trimmed}</p>`;
+        })
+        .filter(Boolean)
+        .join('');
+    }
+    if (typeof content === 'string') {
+      const trimmed = content.trim();
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) {
+            return parsed
+              .map((item) => {
+                if (typeof item !== 'string') return '';
+                const t = item.trim();
+                if (t.startsWith('<')) return t;
+                return `<p>${t}</p>`;
+              })
+              .filter(Boolean)
+              .join('');
+          }
+        } catch {
+          // ignore
+        }
+      }
+      return content;
+    }
+    return String(content);
+  };
+
   return (
     <div id="research-diary-page" className="min-h-screen bg-[#FAF8F5] pb-24">
-      
+
       {/* 1. Header Banner */}
       <div className="bg-[#2D1614] text-white py-14 sm:py-18 relative overflow-hidden">
         <div className="absolute inset-0 z-0 opacity-25">
           <img
-            src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1600&q=80"
-            alt="Nhật ký nghiên cứu"
+            src={getOptimizedImageUrl(bgImage, 1200, 75)}
+            alt={title}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover"
           />
         </div>
         <div className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-xs text-[#E5B567] text-xs font-semibold uppercase tracking-wider mb-3">
             <BookOpen className="w-3.5 h-3.5" />
-            <span>Tư liệu điền dã & Khảo sát thực địa</span>
+            <span>{tagline}</span>
           </div>
           <h1 className="font-serif-culture text-3xl sm:text-5xl font-bold tracking-tight text-white">
-            Nhật ký nghiên cứu di sản
+            {title}
           </h1>
           <p className="text-sm sm:text-base text-[#D4C8BE] max-w-2xl mt-2 leading-relaxed">
-            Hành trình ghi nhận thực địa, phỏng vấn nghệ nhân tiền bối, số hóa tư liệu âm thanh cổ và phục dựng không gian diễn xướng Quan họ Kinh Bắc.
+            {description}
           </p>
         </div>
       </div>
 
       <div className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        
+
         {/* Phase Filter Tabs */}
         <div className="flex items-center space-x-2 pb-6 border-b border-[#E8DFC8] overflow-x-auto scrollbar-none">
           {phases.map((ph) => (
             <button
               key={ph}
               onClick={() => setFilterPhase(ph)}
-              className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
-                filterPhase === ph
+              className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${filterPhase === ph
                   ? 'bg-[#8C2320] text-white shadow-xs'
                   : 'bg-[#F2EDE4] text-[#5C4D44] hover:bg-[#E5DDCF]'
-              }`}
+                }`}
             >
               {ph}
             </button>
@@ -97,7 +187,7 @@ export const ResearchDiaryPage: React.FC<ResearchDiaryPageProps> = ({
 
         {/* Two-Column Grid: Timeline List (Left) + Detailed Active Entry (Right) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-8">
-          
+
           {/* Left Column: Timeline Entries List */}
           <div className="lg:col-span-5 space-y-4">
             <h3 className="font-serif-culture text-lg font-bold text-[#2D241E] pb-2 border-b border-[#E8DFC8]">
@@ -111,11 +201,10 @@ export const ResearchDiaryPage: React.FC<ResearchDiaryPageProps> = ({
                   <div
                     key={entry.id}
                     onClick={() => setActiveEntryId(entry.id)}
-                    className={`p-4 rounded-2xl border transition-all cursor-pointer ${
-                      isSelected
+                    className={`p-4 rounded-2xl border transition-all cursor-pointer ${isSelected
                         ? 'bg-white border-[#8C2320] shadow-md ring-2 ring-[#8C2320]/20'
                         : 'bg-[#FAF6F0] border-[#E8DFC8] hover:bg-white hover:border-[#8C2320]/50'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between text-xs text-[#8C6B50] mb-1.5">
                       <div className="flex items-center space-x-1.5">
@@ -157,7 +246,7 @@ export const ResearchDiaryPage: React.FC<ResearchDiaryPageProps> = ({
           {/* Right Column: Active Entry Deep Dive */}
           {activeEntry && (
             <div className="lg:col-span-7 bg-white p-6 sm:p-8 rounded-3xl border border-[#E8DFC8] shadow-sm space-y-6">
-              
+
               {/* Header Info */}
               <div className="space-y-3 pb-6 border-b border-[#E8DFC8]">
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -224,12 +313,12 @@ export const ResearchDiaryPage: React.FC<ResearchDiaryPageProps> = ({
               )}
 
               {/* Research Detailed Content */}
-              {activeEntry.content && (
-                <div className="space-y-3 text-sm text-[#4A3B32] leading-relaxed">
+              {hasHtmlContent(activeEntry.content) && (
+                <div className="space-y-3 text-sm text-[#4A3B32] leading-relaxed pt-2">
                   <h4 className="font-bold text-xs uppercase tracking-wider text-[#8C2320]">Nội dung báo cáo điền dã chi tiết</h4>
                   <div
-                    className="prose max-w-none text-sm text-[#4A3B32] leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: activeEntry.content }}
+                    className="prose max-w-none text-sm text-[#4A3B32] leading-relaxed [&_p]:mb-3 [&_img]:rounded-xl [&_img]:my-3 [&_video]:rounded-xl [&_video]:w-full [&_video]:my-3 [&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:rounded-xl [&_table]:w-full [&_table]:border-collapse [&_th]:p-2.5 [&_th]:border [&_th]:border-[#E8DFC8] [&_th]:bg-[#FAF4EB] [&_td]:p-2.5 [&_td]:border [&_td]:border-[#E8DFC8]"
+                    dangerouslySetInnerHTML={{ __html: formatHtmlContent(activeEntry.content) }}
                   />
                 </div>
               )}

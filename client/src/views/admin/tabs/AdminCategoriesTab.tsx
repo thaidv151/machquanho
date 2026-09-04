@@ -1,16 +1,18 @@
 import React from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Pencil } from 'lucide-react';
 import { CategoryInfo } from '../../../types';
 
 interface AdminCategoriesTabProps {
   categories: CategoryInfo[];
   onOpenAddCategory: () => void;
+  onOpenEditCategory: (category: CategoryInfo) => void;
   onDeleteCategory: (id: string) => void;
 }
 
 export const AdminCategoriesTab: React.FC<AdminCategoriesTabProps> = ({
   categories,
   onOpenAddCategory,
+  onOpenEditCategory,
   onDeleteCategory,
 }) => {
   return (
@@ -45,13 +47,22 @@ export const AdminCategoriesTab: React.FC<AdminCategoriesTabProps> = ({
                   className="w-4 h-4 rounded-full inline-block border border-black/10" 
                   style={{ backgroundColor: cat.color || '#8C2320' }} 
                 />
-                <button
-                  onClick={() => onDeleteCategory(cat.id)}
-                  className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                  title="Xóa chuyên mục"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="flex items-center space-x-1">
+                  <button
+                    onClick={() => onOpenEditCategory(cat)}
+                    className="p-1 text-[#7A6B60] hover:text-[#8C2320] hover:bg-[#FAF8F5] rounded-lg transition-colors cursor-pointer"
+                    title="Chỉnh sửa chuyên mục"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => onDeleteCategory(cat.id)}
+                    className="p-1 text-[#7A6B60] hover:text-red-600 hover:bg-[#FAF8F5] rounded-lg transition-colors cursor-pointer"
+                    title="Xóa chuyên mục"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
               <h3 className="font-serif-culture text-lg font-bold text-[#2D241E]">{cat.name}</h3>
               <p className="text-xs text-[#7A6B60] mt-1 line-clamp-2">{cat.description}</p>

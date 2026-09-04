@@ -4,6 +4,7 @@ import {
   Play, Sparkles, Music, ChevronRight, ChevronLeft, BookOpen, Users, Globe, ArrowRight, ExternalLink
 } from 'lucide-react';
 import { audioPlayer } from '../utils/audioSynth';
+import { getOptimizedImageUrl } from '../utils/imageOptimizer';
 
 interface HomeHeroProps {
   siteConfig: SiteConfig;
@@ -24,14 +25,19 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
     imageUrl: banner.imageUrl || '',
     tagline: banner.tagline || '',
     taglineFontSize: banner.taglineFontSize || 'base',
+    taglineColor: banner.taglineColor,
     headline: banner.headline || '',
     headlineFontSize: banner.headlineFontSize || '6xl',
+    headlineColor: banner.headlineColor,
     subtitle: banner.subtitle || '',
     subtitleFontSize: banner.subtitleFontSize || '2xl',
+    subtitleColor: banner.subtitleColor,
     introText: banner.introText || '',
     introFontSize: banner.introFontSize || 'base',
+    introTextColor: banner.introTextColor,
     buttonText: banner.buttonText || '',
     quote: banner.quote || '',
+    quoteColor: banner.quoteColor,
     textAlign: banner.textAlign || 'left',
     buttons: banner.buttons,
   };
@@ -55,22 +61,28 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
   }, [isSliderMode, banner.autoPlay, banner.intervalSpeed, slides.length]);
 
   // Determine current active display data
-  const currentSlide: BannerSlideItem | null = isSliderMode && slides.length > 0 ? slides[currentSlideIndex] : null;
-
-  const currentImageUrl = currentSlide ? currentSlide.imageUrl : banner.imageUrl;
+  const currentSlide = isSliderMode && slides.length > 0 ? slides[currentSlideIndex] : null;
+  const DEFAULT_BANNER_IMAGE = '/images/default_banner.jpg';
+  const rawImageUrl = currentSlide ? currentSlide.imageUrl : banner.imageUrl;
+  const currentImageUrl = rawImageUrl || DEFAULT_BANNER_IMAGE;
   const currentTagline = currentSlide ? currentSlide.tagline : banner.tagline;
   const currentTaglineFontSize = currentSlide?.taglineFontSize || banner.taglineFontSize || 'base';
+  const currentTaglineColor = (currentSlide ? currentSlide.taglineColor : banner.taglineColor) || '#F2E9DD';
 
   const currentHeadline = currentSlide ? currentSlide.headline : banner.headline;
   const currentHeadlineFontSize = currentSlide?.headlineFontSize || banner.headlineFontSize || '6xl';
+  const currentHeadlineColor = (currentSlide ? currentSlide.headlineColor : banner.headlineColor) || '#FFFFFF';
 
   const currentSubtitle = currentSlide ? currentSlide.subtitle : banner.subtitle;
   const currentSubtitleFontSize = currentSlide?.subtitleFontSize || banner.subtitleFontSize || '2xl';
+  const currentSubtitleColor = (currentSlide ? currentSlide.subtitleColor : banner.subtitleColor) || '#D4A25A';
 
   const currentIntroText = currentSlide ? currentSlide.introText : banner.introText;
   const currentIntroFontSize = currentSlide?.introFontSize || banner.introFontSize || 'base';
+  const currentIntroTextColor = (currentSlide ? currentSlide.introTextColor : banner.introTextColor) || '#F2E9DD';
 
   const currentQuote = currentSlide ? currentSlide.quote : banner.quote;
+  const currentQuoteColor = (currentSlide ? currentSlide.quoteColor : banner.quoteColor) || '#F2E9DD';
   const currentTextAlign = (currentSlide ? currentSlide.textAlign : banner.textAlign) || 'left';
 
   const currentSlideEffect = currentSlide?.slideEffect || banner.slideEffect || 'fade';
@@ -282,8 +294,13 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
         {currentImageUrl ? (
           <img
             key={currentImageUrl}
-            src={currentImageUrl}
+            src={getOptimizedImageUrl(currentImageUrl, 1600, 80)}
             alt="Mạch Quan Họ Banner"
+            // @ts-ignore
+            fetchpriority="high"
+            decoding="async"
+            width={1600}
+            height={900}
             className={`w-full h-full object-cover object-center transform scale-105 filter brightness-75 contrast-105 transition-all duration-700 ${getSlideEffectClass()}`}
           />
         ) : (
@@ -338,8 +355,8 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
               {/* Top Tagline Badge */}
               {hasTagline && (
                 <div
-                  className={`inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#114D3A]/70 backdrop-blur-md border border-[#D4A25A]/40 text-[#F2E9DD] font-semibold w-fit ${alignStyle.container} ${getTaglineFontSizeClass()} ${getTextAnimationClass()}`}
-                  style={{ animationDelay: '100ms' }}
+                  className={`inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#114D3A]/70 backdrop-blur-md border border-[#D4A25A]/40 font-semibold w-fit ${alignStyle.container} ${getTaglineFontSizeClass()} ${getTextAnimationClass()}`}
+                  style={{ animationDelay: '100ms', color: currentTaglineColor }}
                 >
                   <Sparkles className="w-4 h-4 text-[#D4A25A]" />
                   <span>{currentTagline}</span>
@@ -351,16 +368,16 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
                 <div className={`space-y-3 flex flex-col ${alignStyle.container}`}>
                   {currentHeadline && currentHeadline.trim() !== '' && (
                     <h1
-                      className={`font-serif-culture font-bold tracking-tight text-white drop-shadow-md transition-all max-w-5xl ${alignStyle.maxW} ${getHeadlineFontSizeClass()} ${getTextAnimationClass()}`}
-                      style={{ animationDelay: '250ms' }}
+                      className={`font-serif-culture font-bold tracking-tight drop-shadow-md transition-all max-w-5xl ${alignStyle.maxW} ${getHeadlineFontSizeClass()} ${getTextAnimationClass()}`}
+                      style={{ animationDelay: '250ms', color: currentHeadlineColor }}
                     >
                       {currentHeadline}
                     </h1>
                   )}
                   {currentSubtitle && currentSubtitle.trim() !== '' && (
                     <p
-                      className={`font-serif-culture font-medium text-[#D4A25A] tracking-wide transition-all max-w-3xl sm:max-w-4xl ${alignStyle.maxW} ${getSubtitleFontSizeClass()} ${getTextAnimationClass()}`}
-                      style={{ animationDelay: '400ms' }}
+                      className={`font-serif-culture font-medium tracking-wide transition-all max-w-3xl sm:max-w-4xl ${alignStyle.maxW} ${getSubtitleFontSizeClass()} ${getTextAnimationClass()}`}
+                      style={{ animationDelay: '400ms', color: currentSubtitleColor }}
                     >
                       {currentSubtitle}
                     </p>
@@ -371,8 +388,8 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
               {/* Intro Text */}
               {currentIntroText && currentIntroText.trim() !== '' && (
                 <p
-                  className={`text-[#F2E9DD] drop-shadow-md leading-relaxed font-normal max-w-3xl ${alignStyle.maxW} ${getIntroFontSizeClass()} ${getTextAnimationClass()}`}
-                  style={{ animationDelay: '550ms' }}
+                  className={`drop-shadow-md leading-relaxed font-normal max-w-3xl ${alignStyle.maxW} ${getIntroFontSizeClass()} ${getTextAnimationClass()}`}
+                  style={{ animationDelay: '550ms', color: currentIntroTextColor }}
                 >
                   {currentIntroText}
                 </p>
@@ -414,7 +431,10 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
                 <Sparkles className="w-4 h-4 text-[#D4A25A]" />
                 <span>Trích dẫn Quan họ</span>
               </div>
-              <p className="text-sm sm:text-base italic leading-relaxed text-[#F2E9DD]">
+              <p
+                className="text-sm sm:text-base italic leading-relaxed"
+                style={{ color: currentQuoteColor }}
+              >
                 {currentQuote}
               </p>
               <div className="mt-4 pt-3 border-t border-white/10 text-xs text-[#D4A25A] not-italic font-sans font-semibold">

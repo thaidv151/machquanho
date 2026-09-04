@@ -278,7 +278,7 @@ class DatabaseSeeder extends Seeder
             $catName = $art['category_name'];
             $catId = isset($createdCategories[$catName]) ? $createdCategories[$catName]->id : null;
             $art['category_id'] = $catId;
-            Article::firstOrCreate(['slug' => $art['slug']], $art);
+            Article::updateOrCreate(['slug' => $art['slug']], $art);
         }
 
         // 4. Research Entries
@@ -401,7 +401,7 @@ class DatabaseSeeder extends Seeder
                     'headline' => 'Mạch Quan Họ',
                     'subtitle' => 'Gìn giữ & Lan tỏa Thanh âm Di sản Văn hóa Kinh Bắc',
                     'introText' => 'Dự án lưu trữ, nghiên cứu và tôn vinh Dân ca Quan họ Bắc Ninh - Di sản văn hóa phi vật thể đại diện của nhân loại.',
-                    'imageUrl' => 'https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1600&q=80',
+                    'imageUrl' => '/images/default_banner.jpg',
                     'buttonText' => 'Khám phá bài viết',
                     'buttonLink' => '/news',
                     'quote' => 'Người ơi người ở đừng về...',

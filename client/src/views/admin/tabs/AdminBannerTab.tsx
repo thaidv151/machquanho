@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Save, Loader2, Plus, Trash2, ArrowUp, ArrowDown, AlignLeft, 
-  AlignCenter, AlignRight, Sliders, Image as ImageIcon, Pencil, CheckCircle2, Circle 
+  AlignCenter, AlignRight, Sliders, Image as ImageIcon, Pencil, CheckCircle2, Circle, Layout, Newspaper, BookOpen, Users, Sparkles 
 } from 'lucide-react';
 import { SiteBannerConfig, BannerSlideItem } from '../../../types';
 import { ImageUploader } from '../../../components/ImageUploader';
@@ -42,9 +42,54 @@ export const AdminBannerTab: React.FC<AdminBannerTabProps> = ({
   const mode = bannerForm.mode || 'static';
   const slides = Array.isArray(bannerForm.slides) ? bannerForm.slides : [];
 
+  const [activeSubTab, setActiveSubTab] = useState<'home' | 'subpages'>('home');
+
   // Modal State for Slide editing
   const [isSlideModalOpen, setIsSlideModalOpen] = useState(false);
   const [editingSlide, setEditingSlide] = useState<BannerSlideItem | null>(null);
+
+  const updateSubpageBanner = (pageKey: 'news' | 'research' | 'about', field: string, value: string) => {
+    setBannerForm(prev => {
+      const currentPages = prev.pageBanners || {
+        news: {
+          tagline: 'Thông tin & Truyền thông',
+          title: 'Tin tức & Hoạt động di sản',
+          description: 'Cập nhật toàn diện các sự kiện lễ hội, đề án bảo tồn, chính sách đãi ngộ nghệ nhân và các câu chuyện văn hóa đậm tình Kinh Bắc.',
+          bgImage: 'https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1200&q=75',
+        },
+        research: {
+          tagline: 'Tư liệu điền dã & Khảo sát thực địa',
+          title: 'Nhật ký nghiên cứu di sản',
+          description: 'Hành trình ghi nhận thực địa, phỏng vấn nghệ nhân tiền bối, số hóa tư liệu âm thanh cổ và phục dựng không gian diễn xướng Quan họ Kinh Bắc.',
+          bgImage: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=75',
+        },
+        about: {
+          tagline: 'Giữ mạch di sản – Khơi mạch tương lai',
+          title: 'Về dự án Mạch Quan Họ',
+          description: '"Quan họ là câu ca kết nối cội nguồn quá khứ, nhịp thở hiện tại và mạch nguồn tương lai của vùng đất di sản Kinh Bắc."',
+          bgImage: '/images/quan_ho_thuyen_rong.jpg',
+        },
+      };
+
+      const pageObj = currentPages[pageKey] || {
+        tagline: '',
+        title: '',
+        description: '',
+        bgImage: '',
+      };
+
+      return {
+        ...prev,
+        pageBanners: {
+          ...currentPages,
+          [pageKey]: {
+            ...pageObj,
+            [field]: value,
+          },
+        },
+      };
+    });
+  };
 
   const handleOpenAddSlideModal = () => {
     setEditingSlide(null);
@@ -140,9 +185,40 @@ export const AdminBannerTab: React.FC<AdminBannerTabProps> = ({
         </button>
       </div>
 
+      {/* Sub-tab Navigation Switcher */}
+      <div className="flex items-center space-x-3 border-b border-[#E8DFC8] pb-4">
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('home')}
+          className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer ${
+            activeSubTab === 'home'
+              ? 'bg-[#8C2320] text-white shadow-sm ring-2 ring-[#8C2320]/20'
+              : 'bg-[#F2EDE4] text-[#5C4D44] hover:bg-[#E5DDCF]'
+          }`}
+        >
+          <Layout className="w-4 h-4" />
+          <span>Banner Trang chủ (Home Hero)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('subpages')}
+          className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer ${
+            activeSubTab === 'subpages'
+              ? 'bg-[#8C2320] text-white shadow-sm ring-2 ring-[#8C2320]/20'
+              : 'bg-[#F2EDE4] text-[#5C4D44] hover:bg-[#E5DDCF]'
+          }`}
+        >
+          <ImageIcon className="w-4 h-4" />
+          <span>Banner Các Trang Con (Subpage Banners)</span>
+        </button>
+      </div>
+
       <form onSubmit={onSubmit} className="space-y-6">
         
-        {/* CARD 1: Display Mode & Frame Settings */}
+        {activeSubTab === 'home' && (
+          <div className="space-y-6">
+            {/* CARD 1: Display Mode & Frame Settings */}
         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-[#E8DFC8] shadow-xs space-y-6">
           <div className="border-b border-[#F0EBE1] pb-3">
             <h3 className="font-serif-culture text-xl font-bold text-[#8C2320]">
@@ -521,6 +597,165 @@ export const AdminBannerTab: React.FC<AdminBannerTabProps> = ({
               />
             </div>
 
+            {/* Color Settings Block */}
+            <div className="pt-4 border-t border-[#F0EBE1] space-y-4">
+              <label className="block text-xs font-bold text-[#8C2320]">
+                Cấu hình Màu sắc Văn bản Banner (Text Colors)
+              </label>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Tagline Color */}
+                <div className="p-3 bg-[#FAF8F5] border border-[#E8DFC8] rounded-xl space-y-1.5">
+                  <label className="block text-[11px] font-bold text-[#4A3B32]">Màu chữ Thẻ nhãn (Tagline)</label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="color"
+                      value={bannerForm.taglineColor || '#F2E9DD'}
+                      onChange={(e) => setBannerForm({ ...bannerForm, taglineColor: e.target.value })}
+                      className="w-7 h-7 rounded-lg cursor-pointer border border-[#D9CEBA] p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={bannerForm.taglineColor || '#F2E9DD'}
+                      onChange={(e) => setBannerForm({ ...bannerForm, taglineColor: e.target.value })}
+                      className="w-24 p-1 bg-white border border-[#D9CEBA] rounded-lg text-xs font-mono"
+                    />
+                    <div className="flex items-center space-x-1">
+                      {['#F2E9DD', '#FFFFFF', '#D4A25A', '#8C2320', '#007F32', '#2D241E'].map((hex) => (
+                        <button
+                          key={hex}
+                          type="button"
+                          onClick={() => setBannerForm({ ...bannerForm, taglineColor: hex })}
+                          className="w-4 h-4 rounded-full border border-black/20 cursor-pointer hover:scale-110 transition-transform"
+                          style={{ backgroundColor: hex }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Headline Color */}
+                <div className="p-3 bg-[#FAF8F5] border border-[#E8DFC8] rounded-xl space-y-1.5">
+                  <label className="block text-[11px] font-bold text-[#4A3B32]">Màu chữ Tiêu đề chính (Headline)</label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="color"
+                      value={bannerForm.headlineColor || '#FFFFFF'}
+                      onChange={(e) => setBannerForm({ ...bannerForm, headlineColor: e.target.value })}
+                      className="w-7 h-7 rounded-lg cursor-pointer border border-[#D9CEBA] p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={bannerForm.headlineColor || '#FFFFFF'}
+                      onChange={(e) => setBannerForm({ ...bannerForm, headlineColor: e.target.value })}
+                      className="w-24 p-1 bg-white border border-[#D9CEBA] rounded-lg text-xs font-mono"
+                    />
+                    <div className="flex items-center space-x-1">
+                      {['#FFFFFF', '#F2E9DD', '#D4A25A', '#8C2320', '#007F32', '#2D241E'].map((hex) => (
+                        <button
+                          key={hex}
+                          type="button"
+                          onClick={() => setBannerForm({ ...bannerForm, headlineColor: hex })}
+                          className="w-4 h-4 rounded-full border border-black/20 cursor-pointer hover:scale-110 transition-transform"
+                          style={{ backgroundColor: hex }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Subtitle Color */}
+                <div className="p-3 bg-[#FAF8F5] border border-[#E8DFC8] rounded-xl space-y-1.5">
+                  <label className="block text-[11px] font-bold text-[#4A3B32]">Màu chữ Tiêu đề phụ (Subtitle)</label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="color"
+                      value={bannerForm.subtitleColor || '#D4A25A'}
+                      onChange={(e) => setBannerForm({ ...bannerForm, subtitleColor: e.target.value })}
+                      className="w-7 h-7 rounded-lg cursor-pointer border border-[#D9CEBA] p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={bannerForm.subtitleColor || '#D4A25A'}
+                      onChange={(e) => setBannerForm({ ...bannerForm, subtitleColor: e.target.value })}
+                      className="w-24 p-1 bg-white border border-[#D9CEBA] rounded-lg text-xs font-mono"
+                    />
+                    <div className="flex items-center space-x-1">
+                      {['#D4A25A', '#FFFFFF', '#F2E9DD', '#8C2320', '#007F32', '#2D241E'].map((hex) => (
+                        <button
+                          key={hex}
+                          type="button"
+                          onClick={() => setBannerForm({ ...bannerForm, subtitleColor: hex })}
+                          className="w-4 h-4 rounded-full border border-black/20 cursor-pointer hover:scale-110 transition-transform"
+                          style={{ backgroundColor: hex }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Intro Text Color */}
+                <div className="p-3 bg-[#FAF8F5] border border-[#E8DFC8] rounded-xl space-y-1.5">
+                  <label className="block text-[11px] font-bold text-[#4A3B32]">Màu chữ Đoạn giới thiệu (Intro)</label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="color"
+                      value={bannerForm.introTextColor || '#F2E9DD'}
+                      onChange={(e) => setBannerForm({ ...bannerForm, introTextColor: e.target.value })}
+                      className="w-7 h-7 rounded-lg cursor-pointer border border-[#D9CEBA] p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={bannerForm.introTextColor || '#F2E9DD'}
+                      onChange={(e) => setBannerForm({ ...bannerForm, introTextColor: e.target.value })}
+                      className="w-24 p-1 bg-white border border-[#D9CEBA] rounded-lg text-xs font-mono"
+                    />
+                    <div className="flex items-center space-x-1">
+                      {['#F2E9DD', '#FFFFFF', '#D4A25A', '#8C2320', '#007F32', '#2D241E'].map((hex) => (
+                        <button
+                          key={hex}
+                          type="button"
+                          onClick={() => setBannerForm({ ...bannerForm, introTextColor: hex })}
+                          className="w-4 h-4 rounded-full border border-black/20 cursor-pointer hover:scale-110 transition-transform"
+                          style={{ backgroundColor: hex }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quote Color */}
+                <div className="p-3 bg-[#FAF8F5] border border-[#E8DFC8] rounded-xl space-y-1.5">
+                  <label className="block text-[11px] font-bold text-[#4A3B32]">Màu chữ Thẻ trích dẫn (Quote)</label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="color"
+                      value={bannerForm.quoteColor || '#F2E9DD'}
+                      onChange={(e) => setBannerForm({ ...bannerForm, quoteColor: e.target.value })}
+                      className="w-7 h-7 rounded-lg cursor-pointer border border-[#D9CEBA] p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={bannerForm.quoteColor || '#F2E9DD'}
+                      onChange={(e) => setBannerForm({ ...bannerForm, quoteColor: e.target.value })}
+                      className="w-24 p-1 bg-white border border-[#D9CEBA] rounded-lg text-xs font-mono"
+                    />
+                    <div className="flex items-center space-x-1">
+                      {['#F2E9DD', '#FFFFFF', '#D4A25A', '#8C2320', '#007F32', '#2D241E'].map((hex) => (
+                        <button
+                          key={hex}
+                          type="button"
+                          onClick={() => setBannerForm({ ...bannerForm, quoteColor: hex })}
+                          className="w-4 h-4 rounded-full border border-black/20 cursor-pointer hover:scale-110 transition-transform"
+                          style={{ backgroundColor: hex }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Dynamic Buttons List Editor for Static Banner */}
             <BannerButtonsEditor
               buttons={bannerForm.buttons || [
@@ -707,6 +942,185 @@ export const AdminBannerTab: React.FC<AdminBannerTabProps> = ({
             />
           </div>
         </div>
+      </div>
+      )}
+
+        {activeSubTab === 'subpages' && (
+          <div className="space-y-8">
+            <div className="bg-white p-6 sm:p-8 rounded-2xl border border-[#E8DFC8] shadow-xs space-y-6">
+              <div className="border-b border-[#F0EBE1] pb-3">
+                <h3 className="font-serif-culture text-xl font-bold text-[#8C2320]">
+                  Quản lý Banner Header Các Trang Con
+                </h3>
+                <p className="text-xs text-[#7A6B60] mt-0.5">
+                  Tùy chỉnh linh hoạt Thẻ phụ (Tagline), Tiêu đề chính (Title), Mô tả ngắn và Ảnh nền Banner cho từng trang con.
+                </p>
+              </div>
+
+              {/* 1. News Page Banner */}
+              <div className="p-6 bg-[#FAF8F5] rounded-2xl border border-[#E8DFC8] space-y-4">
+                <div className="flex items-center space-x-2.5 text-[#8C2320] border-b border-[#E8DFC8] pb-3">
+                  <Newspaper className="w-5 h-5" />
+                  <h4 className="font-serif-culture text-lg font-bold text-[#2D241E]">
+                    1. Trang Tin tức & Hoạt động di sản (/news)
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#4A3B32] mb-1">Thẻ phụ Tagline (Huy hiệu phía trên)</label>
+                    <input
+                      type="text"
+                      value={bannerForm.pageBanners?.news?.tagline ?? 'Thông tin & Truyền thông'}
+                      onChange={(e) => updateSubpageBanner('news', 'tagline', e.target.value)}
+                      placeholder="Ví dụ: Thông tin & Truyền thông"
+                      className="w-full p-2.5 bg-white border border-[#D9CEBA] rounded-xl text-xs text-[#2D241E]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#4A3B32] mb-1">Tiêu đề Banner (H1)</label>
+                    <input
+                      type="text"
+                      value={bannerForm.pageBanners?.news?.title ?? 'Tin tức & Hoạt động di sản'}
+                      onChange={(e) => updateSubpageBanner('news', 'title', e.target.value)}
+                      placeholder="Ví dụ: Tin tức & Hoạt động di sản"
+                      className="w-full p-2.5 bg-white border border-[#D9CEBA] rounded-xl text-xs text-[#2D241E]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#4A3B32] mb-1">Mô tả ngắn / Subtitle</label>
+                  <textarea
+                    rows={2}
+                    value={bannerForm.pageBanners?.news?.description ?? 'Cập nhật toàn diện các sự kiện lễ hội, đề án bảo tồn, chính sách đãi ngộ nghệ nhân và các câu chuyện văn hóa đậm tình Kinh Bắc.'}
+                    onChange={(e) => updateSubpageBanner('news', 'description', e.target.value)}
+                    placeholder="Nhập mô tả giới thiệu trang..."
+                    className="w-full p-2.5 bg-white border border-[#D9CEBA] rounded-xl text-xs text-[#2D241E]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">Ảnh nền Banner Header</label>
+                  <ImageUploader
+                    value={bannerForm.pageBanners?.news?.bgImage ?? 'https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1200&q=75'}
+                    onChange={(url) => updateSubpageBanner('news', 'bgImage', url)}
+                    label="Tải ảnh lên từ máy tính hoặc dán link URL ảnh nền"
+                  />
+                </div>
+              </div>
+
+              {/* 2. Research Diary Banner */}
+              <div className="p-6 bg-[#FAF8F5] rounded-2xl border border-[#E8DFC8] space-y-4">
+                <div className="flex items-center space-x-2.5 text-[#8C2320] border-b border-[#E8DFC8] pb-3">
+                  <BookOpen className="w-5 h-5" />
+                  <h4 className="font-serif-culture text-lg font-bold text-[#2D241E]">
+                    2. Trang Nhật ký nghiên cứu (/research-diary)
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#4A3B32] mb-1">Thẻ phụ Tagline (Huy hiệu phía trên)</label>
+                    <input
+                      type="text"
+                      value={bannerForm.pageBanners?.research?.tagline ?? 'Tư liệu điền dã & Khảo sát thực địa'}
+                      onChange={(e) => updateSubpageBanner('research', 'tagline', e.target.value)}
+                      placeholder="Ví dụ: Tư liệu điền dã & Khảo sát thực địa"
+                      className="w-full p-2.5 bg-white border border-[#D9CEBA] rounded-xl text-xs text-[#2D241E]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#4A3B32] mb-1">Tiêu đề Banner (H1)</label>
+                    <input
+                      type="text"
+                      value={bannerForm.pageBanners?.research?.title ?? 'Nhật ký nghiên cứu di sản'}
+                      onChange={(e) => updateSubpageBanner('research', 'title', e.target.value)}
+                      placeholder="Ví dụ: Nhật ký nghiên cứu di sản"
+                      className="w-full p-2.5 bg-white border border-[#D9CEBA] rounded-xl text-xs text-[#2D241E]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#4A3B32] mb-1">Mô tả ngắn / Subtitle</label>
+                  <textarea
+                    rows={2}
+                    value={bannerForm.pageBanners?.research?.description ?? 'Hành trình ghi nhận thực địa, phỏng vấn nghệ nhân tiền bối, số hóa tư liệu âm thanh cổ và phục dựng không gian diễn xướng Quan họ Kinh Bắc.'}
+                    onChange={(e) => updateSubpageBanner('research', 'description', e.target.value)}
+                    placeholder="Nhập mô tả giới thiệu trang..."
+                    className="w-full p-2.5 bg-white border border-[#D9CEBA] rounded-xl text-xs text-[#2D241E]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">Ảnh nền Banner Header</label>
+                  <ImageUploader
+                    value={bannerForm.pageBanners?.research?.bgImage ?? 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=75'}
+                    onChange={(url) => updateSubpageBanner('research', 'bgImage', url)}
+                    label="Tải ảnh lên từ máy tính hoặc dán link URL ảnh nền"
+                  />
+                </div>
+              </div>
+
+              {/* 3. About Us Banner */}
+              <div className="p-6 bg-[#FAF8F5] rounded-2xl border border-[#E8DFC8] space-y-4">
+                <div className="flex items-center space-x-2.5 text-[#8C2320] border-b border-[#E8DFC8] pb-3">
+                  <Users className="w-5 h-5" />
+                  <h4 className="font-serif-culture text-lg font-bold text-[#2D241E]">
+                    3. Trang Về chúng tôi (/about)
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#4A3B32] mb-1">Thẻ phụ Tagline (Huy hiệu phía trên)</label>
+                    <input
+                      type="text"
+                      value={bannerForm.pageBanners?.about?.tagline ?? 'Giữ mạch di sản – Khơi mạch tương lai'}
+                      onChange={(e) => updateSubpageBanner('about', 'tagline', e.target.value)}
+                      placeholder="Ví dụ: Giữ mạch di sản – Khơi mạch tương lai"
+                      className="w-full p-2.5 bg-white border border-[#D9CEBA] rounded-xl text-xs text-[#2D241E]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#4A3B32] mb-1">Tiêu đề Banner (H1)</label>
+                    <input
+                      type="text"
+                      value={bannerForm.pageBanners?.about?.title ?? 'Về dự án Mạch Quan Họ'}
+                      onChange={(e) => updateSubpageBanner('about', 'title', e.target.value)}
+                      placeholder="Ví dụ: Về dự án Mạch Quan Họ"
+                      className="w-full p-2.5 bg-white border border-[#D9CEBA] rounded-xl text-xs text-[#2D241E]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#4A3B32] mb-1">Mô tả ngắn / Subtitle</label>
+                  <textarea
+                    rows={2}
+                    value={bannerForm.pageBanners?.about?.description ?? '"Quan họ là câu ca kết nối cội nguồn quá khứ, nhịp thở hiện tại và mạch nguồn tương lai của vùng đất di sản Kinh Bắc."'}
+                    onChange={(e) => updateSubpageBanner('about', 'description', e.target.value)}
+                    placeholder="Nhập mô tả giới thiệu trang..."
+                    className="w-full p-2.5 bg-white border border-[#D9CEBA] rounded-xl text-xs text-[#2D241E]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">Ảnh nền Banner Header</label>
+                  <ImageUploader
+                    value={bannerForm.pageBanners?.about?.bgImage ?? '/images/quan_ho_thuyen_rong.jpg'}
+                    onChange={(url) => updateSubpageBanner('about', 'bgImage', url)}
+                    label="Tải ảnh lên từ máy tính hoặc dán link URL ảnh nền"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Save CTA */}
         <div className="flex justify-end pt-2">

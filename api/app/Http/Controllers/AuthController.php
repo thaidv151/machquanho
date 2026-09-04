@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Services\AuthService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    public function __construct(protected AuthService $authService)
+    {
+    }
+
     /**
      * Register a new User.
      *
@@ -16,29 +21,31 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|between:2,100',
-            'email' => 'required|string|email|max:100|unique:users',
-            'password' => 'required|string|min:6',
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|string|between:2,100',
+                'email' => 'required|string|email|max:100|unique:users',
+                'password' => 'required|string|min:6',
+            ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
+            if ($validator->fails()) {
+                return response()->json($validator->errors(), 400);
+            }
+
+            $result = $this->authService->register($validator->validated());
+
+            return response()->json([
+                'message' => 'User successfully registered',
+                'user' => $result['user'],
+                'token' => $this->respondWithToken($result['token'])->original,
+            ], 201);
+        } catch (\Throwable $e) {
+            Log::error('AuthController@register error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Lỗi hệ thống khi đăng ký: ' . $e->getMessage(),
+            ], 500);
         }
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        $token = auth('api')->login($user);
-
-        return response()->json([
-            'message' => 'User successfully registered',
-            'user' => $user,
-            'token' => $this->respondWithToken($token)->original,
-        ], 201);
     }
 
     /**
@@ -48,20 +55,29 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required|string|min:6',
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|email',
+                'password' => 'required|string|min:6',
+            ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            if ($validator->fails()) {
+                return response()->json($validator->errors(), 422);
+            }
+
+            $token = $this->authService->login($validator->validated());
+            if (!$token) {
+                return response()->json(['error' => 'Unauthorized / Invalid credentials'], 401);
+            }
+
+            return $this->respondWithToken($token);
+        } catch (\Throwable $e) {
+            Log::error('AuthController@login error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Lỗi hệ thống khi đăng nhập: ' . $e->getMessage(),
+            ], 500);
         }
-
-        if (! $token = auth('api')->attempt($validator->validated())) {
-            return response()->json(['error' => 'Unauthorized / Invalid credentials'], 401);
-        }
-
-        return $this->respondWithToken($token);
     }
 
     /**
@@ -71,7 +87,16 @@ class AuthController extends Controller
      */
     public function me()
     {
-        return response()->json(auth('api')->user());
+        try {
+            $user = $this->authService->getAuthenticatedUser();
+            if (!$user) {
+                return response()->json(['error' => 'Unauthenticated'], 401);
+            }
+            return response()->json($user);
+        } catch (\Throwable $e) {
+            Log::error('AuthController@me error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
     }
 
     /**
@@ -81,9 +106,17 @@ class AuthController extends Controller
      */
     public function logout()
     {
-        auth('api')->logout();
+        try {
+            $this->authService->logout();
 
-        return response()->json(['message' => 'Successfully logged out']);
+            return response()->json(['message' => 'Successfully logged out']);
+        } catch (\Throwable $e) {
+            Log::error('AuthController@logout error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Lỗi khi đăng xuất: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -93,7 +126,16 @@ class AuthController extends Controller
      */
     public function refresh()
     {
-        return $this->respondWithToken(auth('api')->refresh());
+        try {
+            $newToken = $this->authService->refresh();
+            return $this->respondWithToken($newToken);
+        } catch (\Throwable $e) {
+            Log::error('AuthController@refresh error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Lỗi khi làm mới token: ' . $e->getMessage(),
+            ], 401);
+        }
     }
 
     /**
@@ -108,7 +150,7 @@ class AuthController extends Controller
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth('api')->factory()->getTTL() * 60,
-            'user' => auth('api')->user(),
+            'user' => $this->authService->getAuthenticatedUser(),
         ]);
     }
 }

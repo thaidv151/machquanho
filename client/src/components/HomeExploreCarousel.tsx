@@ -1,16 +1,47 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ExploreTopic } from '../types';
 import { Compass, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { getOptimizedImageUrl } from '../utils/imageOptimizer';
+import { apiService } from '../services/apiService';
 
 interface HomeExploreCarouselProps {
-  topics: ExploreTopic[];
+  topics?: ExploreTopic[];
   onSelectTopic: (topicId: string) => void;
 }
 
 export const HomeExploreCarousel: React.FC<HomeExploreCarouselProps> = ({
-  topics,
+  topics: initialTopics,
   onSelectTopic
 }) => {
+  const [topics, setTopics] = useState<ExploreTopic[]>(initialTopics || []);
+  const [loading, setLoading] = useState(!initialTopics || initialTopics.length === 0);
+
+  useEffect(() => {
+    if (initialTopics && initialTopics.length > 0) {
+      setTopics(initialTopics);
+      setLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    const fetchTopics = async () => {
+      try {
+        setLoading(true);
+        const data = await apiService.getExploreTopics();
+        if (isMounted && data && data.length > 0) {
+          setTopics(data);
+        }
+      } catch (err) {
+        console.warn('Failed to load explore topics in HomeExploreCarousel:', err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchTopics();
+    return () => { isMounted = false; };
+  }, [initialTopics]);
+
   const displayTopics = topics || [];
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
@@ -63,8 +94,18 @@ export const HomeExploreCarousel: React.FC<HomeExploreCarouselProps> = ({
           )}
         </div>
 
-        {/* Content Section: Empty state vs Cards Grid */}
-        {displayTopics.length === 0 ? (
+        {/* Content Section: Loading vs Empty state vs Cards Grid */}
+        {loading ? (
+          <div className="flex space-x-5 overflow-hidden py-4 animate-pulse">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="w-[280px] sm:w-[320px] shrink-0 bg-white/70 rounded-2xl h-64 border border-[#E3D5C3] p-4 flex flex-col justify-between">
+                <div className="h-32 bg-[#E3D5C3]/50 rounded-xl"></div>
+                <div className="h-4 bg-[#E3D5C3]/60 rounded w-3/4 mt-3"></div>
+                <div className="h-3 bg-[#E3D5C3]/40 rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        ) : displayTopics.length === 0 ? (
           <div className="text-center py-12 px-4 bg-white/70 rounded-3xl border border-[#E3D5C3]">
             <Compass className="w-10 h-10 text-[#A8988B] mx-auto mb-3 opacity-60" />
             <p className="font-serif-culture text-base font-bold text-[#4A3B32]">
@@ -89,8 +130,12 @@ export const HomeExploreCarousel: React.FC<HomeExploreCarouselProps> = ({
                 {/* Card Image */}
                 <div className="relative h-48 overflow-hidden bg-[#0A3326]">
                   <img
-                    src={topic.image}
+                    src={getOptimizedImageUrl(topic.image, 600, 75)}
                     alt={topic.title}
+                    loading="lazy"
+                    decoding="async"
+                    width={600}
+                    height={380}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />

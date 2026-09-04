@@ -1,22 +1,73 @@
 import React, { useState, useEffect } from 'react';
-import { Article, ArticleCategory, ViewState } from '../types';
+import { Article, ArticleCategory, ViewState, SiteConfig } from '../types';
 import { Search, Calendar, Clock, ArrowRight, Sparkles, Filter, Music, ChevronLeft, ChevronRight } from 'lucide-react';
+import { getOptimizedImageUrl } from '../utils/imageOptimizer';
+import { apiService } from '../services/apiService';
 
 interface NewsListPageProps {
-  articles: Article[];
+  articles?: Article[];
   initialCategory?: string;
   initialSearchQuery?: string;
   onNavigate: (view: ViewState) => void;
+  siteConfig?: SiteConfig;
 }
 
 export const NewsListPage: React.FC<NewsListPageProps> = ({
-  articles,
+  articles: initialArticles,
   initialCategory,
   initialSearchQuery,
-  onNavigate
+  onNavigate,
+  siteConfig
 }) => {
+  const [articles, setArticles] = useState<Article[]>(initialArticles || []);
+  const [loading, setLoading] = useState(!initialArticles || initialArticles.length === 0);
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'Tất cả');
   const [searchQuery, setSearchQuery] = useState<string>(initialSearchQuery || '');
+
+  const [categories, setCategories] = useState<string[]>(['Tất cả']);
+
+  useEffect(() => {
+    if (initialArticles && initialArticles.length > 0) {
+      setArticles(initialArticles);
+      setLoading(false);
+    }
+  }, [initialArticles]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchNewsData = async () => {
+      try {
+        setLoading(true);
+        const [data, cats] = await Promise.all([
+          apiService.getArticles(),
+          apiService.getCategories().catch(() => [])
+        ]);
+
+        if (isMounted && data && data.length > 0) {
+          setArticles(data);
+        }
+        const catNamesFromDb = cats.map(c => c.name).filter(Boolean);
+        const catNamesFromArts = data ? data.map(a => a.category).filter(Boolean) : [];
+        const combinedCats = Array.from(new Set([...catNamesFromDb, ...catNamesFromArts]));
+        if (isMounted) {
+          setCategories(['Tất cả', ...combinedCats]);
+        }
+      } catch (err) {
+        console.warn('Failed to load articles in NewsListPage:', err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchNewsData();
+    return () => { isMounted = false; };
+  }, []);
+
+  const pageBanner = siteConfig?.banner?.pageBanners?.news;
+  const tagline = pageBanner?.tagline || 'Thông tin & Truyền thông';
+  const title = pageBanner?.title || 'Tin tức & Hoạt động di sản';
+  const description = pageBanner?.description || 'Cập nhật toàn diện các sự kiện lễ hội, đề án bảo tồn, chính sách đãi ngộ nghệ nhân và các câu chuyện văn hóa đậm tình Kinh Bắc.';
+  const bgImage = pageBanner?.bgImage || 'https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1200&q=75';
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 6;
 
@@ -29,14 +80,12 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
     setSearchQuery(initialSearchQuery || '');
   }, [initialSearchQuery]);
 
-  const categories = ['Tất cả', 'Sự kiện', 'Chính sách', 'Góc nhìn', 'Hoạt động', 'Nghệ nhân', 'Khám phá'];
-
   // Filter articles
   const publishedArticles = articles.filter(a => a.status === 'Đã đăng');
-  
+
   const filtered = publishedArticles.filter(article => {
     const matchesCategory = selectedCategory === 'Tất cả' || article.category === selectedCategory;
-    const matchesSearch = !searchQuery.trim() || 
+    const matchesSearch = !searchQuery.trim() ||
       article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       article.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (article.author && article.author.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -61,35 +110,37 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
 
   return (
     <div id="news-list-page" className="min-h-screen bg-[#FAF8F5] pb-20">
-      
+
       {/* Page Header Banner */}
       <div className="bg-[#2D1614] text-white py-12 sm:py-16 relative overflow-hidden">
         <div className="absolute inset-0 z-0 opacity-25">
           <img
-            src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1600&q=80"
-            alt="Di sản Quan họ"
+            src={getOptimizedImageUrl(bgImage, 1200, 75)}
+            alt={title}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover"
           />
         </div>
         <div className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center sm:text-left">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-xs text-[#E5B567] text-xs font-semibold uppercase tracking-wider mb-3">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Thông tin & Truyền thông</span>
+            <span>{tagline}</span>
           </div>
           <h1 className="font-serif-culture text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white">
-            Tin tức & Hoạt động di sản
+            {title}
           </h1>
           <p className="text-sm sm:text-base text-[#D4C8BE] max-w-2xl mt-2 leading-relaxed">
-            Cập nhật toàn diện các sự kiện lễ hội, đề án bảo tồn, chính sách đãi ngộ nghệ nhân và các câu chuyện văn hóa đậm tình Kinh Bắc.
+            {description}
           </p>
         </div>
       </div>
 
       <div className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
-        
+
         {/* Controls Bar: Category Pills + Search */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#E8DFC8]">
-          
+
           {/* Categories Horizontal Tabs */}
           <div className="flex items-center space-x-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
             {categories.map((cat) => (
@@ -97,11 +148,10 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
                 key={cat}
                 id={`category-tab-${cat}`}
                 onClick={() => handleCategorySelect(cat)}
-                className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                  selectedCategory === cat
-                    ? 'bg-[#8C2320] text-white shadow-xs'
-                    : 'bg-[#F2EDE4] text-[#5C4D44] hover:bg-[#E5DDCF] hover:text-[#8C2320]'
-                }`}
+                className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${selectedCategory === cat
+                  ? 'bg-[#8C2320] text-white shadow-xs'
+                  : 'bg-[#F2EDE4] text-[#5C4D44] hover:bg-[#E5DDCF] hover:text-[#8C2320]'
+                  }`}
               >
                 {cat}
               </button>
@@ -146,12 +196,16 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
             className="bg-white rounded-3xl overflow-hidden border border-[#E8DFC8] hover:border-[#8C2320] hover:shadow-xl transition-all duration-300 group cursor-pointer"
           >
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
-              
+
               {/* Image side */}
               <div className="lg:col-span-7 relative h-72 sm:h-96 lg:h-auto overflow-hidden bg-[#2D1614]">
                 <img
-                  src={featuredArticle.coverImage}
+                  src={getOptimizedImageUrl(featuredArticle.coverImage, 800, 75)}
                   alt={featuredArticle.title}
+                  loading="lazy"
+                  decoding="async"
+                  width={800}
+                  height={500}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent lg:hidden" />
@@ -219,58 +273,62 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
                 onClick={() => onNavigate({ type: 'article-detail', articleId: articleSlugOrId })}
                 className="bg-white rounded-2xl overflow-hidden border border-[#E8DFC8] hover:border-[#8C2320] hover:shadow-lg transition-all duration-300 group cursor-pointer flex flex-col justify-between"
               >
-              {/* Card Image */}
-              <div className="relative h-48 overflow-hidden bg-[#2D1614]">
-                <img
-                  src={article.coverImage}
-                  alt={article.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                
-                <span className="absolute top-3 left-3 px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#8C2320] text-white shadow-xs">
-                  {article.category}
-                </span>
+                {/* Card Image */}
+                <div className="relative h-48 overflow-hidden bg-[#2D1614]">
+                  <img
+                    src={getOptimizedImageUrl(article.coverImage, 600, 75)}
+                    alt={article.title}
+                    loading="lazy"
+                    decoding="async"
+                    width={600}
+                    height={350}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
-                {article.audioTitle && (
-                  <span className="absolute top-3 right-3 p-1.5 rounded-full bg-black/60 backdrop-blur-xs text-[#E5B567]">
-                    <Music className="w-3.5 h-3.5" />
+                  <span className="absolute top-3 left-3 px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#8C2320] text-white shadow-xs">
+                    {article.category}
                   </span>
-                )}
-              </div>
 
-              {/* Card Info */}
-              <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                <div>
-                  <div className="flex items-center space-x-2 text-xs text-[#8C6B50] mb-2">
-                    <Calendar className="w-3 h-3" />
-                    <span>{article.date}</span>
-                    <span>•</span>
-                    <span>{article.readTime}</span>
+                  {article.audioTitle && (
+                    <span className="absolute top-3 right-3 p-1.5 rounded-full bg-black/60 backdrop-blur-xs text-[#E5B567]">
+                      <Music className="w-3.5 h-3.5" />
+                    </span>
+                  )}
+                </div>
+
+                {/* Card Info */}
+                <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                  <div>
+                    <div className="flex items-center space-x-2 text-xs text-[#8C6B50] mb-2">
+                      <Calendar className="w-3 h-3" />
+                      <span>{article.date}</span>
+                      <span>•</span>
+                      <span>{article.readTime}</span>
+                    </div>
+
+                    <h3 className="font-serif-culture text-base font-bold text-[#2D241E] group-hover:text-[#8C2320] transition-colors line-clamp-2 leading-snug">
+                      {article.title}
+                    </h3>
+
+                    <p className="text-xs text-[#6B5A4E] mt-2 line-clamp-2 leading-relaxed">
+                      {article.excerpt}
+                    </p>
                   </div>
 
-                  <h3 className="font-serif-culture text-base font-bold text-[#2D241E] group-hover:text-[#8C2320] transition-colors line-clamp-2 leading-snug">
-                    {article.title}
-                  </h3>
-
-                  <p className="text-xs text-[#6B5A4E] mt-2 line-clamp-2 leading-relaxed">
-                    {article.excerpt}
-                  </p>
+                  <div className="pt-3 border-t border-[#F0EBE1] flex items-center justify-between text-xs">
+                    <span className="text-[#7A6B60] truncate max-w-[140px]">
+                      Tác giả: {article.author}
+                    </span>
+                    <span className="font-semibold text-[#8C2320] flex items-center space-x-1 group-hover:translate-x-0.5 transition-transform">
+                      <span>Xem chi tiết</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </span>
+                  </div>
                 </div>
-
-                <div className="pt-3 border-t border-[#F0EBE1] flex items-center justify-between text-xs">
-                  <span className="text-[#7A6B60] truncate max-w-[140px]">
-                    Tác giả: {article.author}
-                  </span>
-                  <span className="font-semibold text-[#8C2320] flex items-center space-x-1 group-hover:translate-x-0.5 transition-transform">
-                    <span>Xem chi tiết</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </span>
-                </div>
-              </div>
-            </article>
-          );
-        })}
+              </article>
+            );
+          })}
         </div>
 
         {/* Pagination Controls */}
@@ -288,11 +346,10 @@ export const NewsListPage: React.FC<NewsListPageProps> = ({
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`w-9 h-9 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-                  currentPage === page
-                    ? 'bg-[#8C2320] text-white shadow-xs'
-                    : 'bg-white border border-[#D9CEBA] text-[#4A3B32] hover:bg-[#F4EFE6]'
-                }`}
+                className={`w-9 h-9 rounded-lg text-xs font-bold transition-colors cursor-pointer ${currentPage === page
+                  ? 'bg-[#8C2320] text-white shadow-xs'
+                  : 'bg-white border border-[#D9CEBA] text-[#4A3B32] hover:bg-[#F4EFE6]'
+                  }`}
               >
                 {page}
               </button>

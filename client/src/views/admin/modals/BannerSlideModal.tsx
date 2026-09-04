@@ -294,6 +294,165 @@ export const BannerSlideModal: React.FC<BannerSlideModalProps> = ({
             />
           </div>
 
+          {/* Slide Colors Settings Block */}
+          <div className="pt-3 border-t border-[#F0EBE1] space-y-3">
+            <label className="block text-xs font-bold text-[#8C2320]">
+              Tùy chỉnh Màu sắc Văn bản Slide này (Text Colors)
+            </label>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Tagline Color */}
+              <div className="p-2.5 bg-[#FAF8F5] border border-[#E8DFC8] rounded-xl space-y-1">
+                <label className="block text-[11px] font-bold text-[#4A3B32]">Màu Thẻ nhãn (Tagline)</label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="color"
+                    value={formData.taglineColor || '#F2E9DD'}
+                    onChange={(e) => setFormData({ ...formData, taglineColor: e.target.value })}
+                    className="w-7 h-7 rounded-lg cursor-pointer border border-[#D9CEBA] p-0.5"
+                  />
+                  <input
+                    type="text"
+                    value={formData.taglineColor || '#F2E9DD'}
+                    onChange={(e) => setFormData({ ...formData, taglineColor: e.target.value })}
+                    className="w-24 p-1 bg-white border border-[#D9CEBA] rounded-lg text-xs font-mono"
+                  />
+                  <div className="flex items-center space-x-1">
+                    {['#F2E9DD', '#FFFFFF', '#D4A25A', '#8C2320', '#007F32', '#2D241E'].map((hex) => (
+                      <button
+                        key={hex}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, taglineColor: hex })}
+                        className="w-4 h-4 rounded-full border border-black/20 cursor-pointer hover:scale-110 transition-transform"
+                        style={{ backgroundColor: hex }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Headline Color */}
+              <div className="p-2.5 bg-[#FAF8F5] border border-[#E8DFC8] rounded-xl space-y-1">
+                <label className="block text-[11px] font-bold text-[#4A3B32]">Màu Tiêu đề chính (Headline)</label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="color"
+                    value={formData.headlineColor || '#FFFFFF'}
+                    onChange={(e) => setFormData({ ...formData, headlineColor: e.target.value })}
+                    className="w-7 h-7 rounded-lg cursor-pointer border border-[#D9CEBA] p-0.5"
+                  />
+                  <input
+                    type="text"
+                    value={formData.headlineColor || '#FFFFFF'}
+                    onChange={(e) => setFormData({ ...formData, headlineColor: e.target.value })}
+                    className="w-24 p-1 bg-white border border-[#D9CEBA] rounded-lg text-xs font-mono"
+                  />
+                  <div className="flex items-center space-x-1">
+                    {['#FFFFFF', '#F2E9DD', '#D4A25A', '#8C2320', '#007F32', '#2D241E'].map((hex) => (
+                      <button
+                        key={hex}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, headlineColor: hex })}
+                        className="w-4 h-4 rounded-full border border-black/20 cursor-pointer hover:scale-110 transition-transform"
+                        style={{ backgroundColor: hex }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Subtitle Color */}
+              <div className="p-2.5 bg-[#FAF8F5] border border-[#E8DFC8] rounded-xl space-y-1">
+                <label className="block text-[11px] font-bold text-[#4A3B32]">Màu Tiêu đề phụ (Subtitle)</label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="color"
+                    value={formData.subtitleColor || '#D4A25A'}
+                    onChange={(e) => setFormData({ ...formData, subtitleColor: e.target.value })}
+                    className="w-7 h-7 rounded-lg cursor-pointer border border-[#D9CEBA] p-0.5"
+                  />
+                  <input
+                    type="text"
+                    value={formData.subtitleColor || '#D4A25A'}
+                    onChange={(e) => setFormData({ ...formData, subtitleColor: e.target.value })}
+                    className="w-24 p-1 bg-white border border-[#D9CEBA] rounded-lg text-xs font-mono"
+                  />
+                  <div className="flex items-center space-x-1">
+                    {['#D4A25A', '#FFFFFF', '#F2E9DD', '#8C2320', '#007F32', '#2D241E'].map((hex) => (
+                      <button
+                        key={hex}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, subtitleColor: hex })}
+                        className="w-4 h-4 rounded-full border border-black/20 cursor-pointer hover:scale-110 transition-transform"
+                        style={{ backgroundColor: hex }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Intro Text Color */}
+              <div className="p-2.5 bg-[#FAF8F5] border border-[#E8DFC8] rounded-xl space-y-1">
+                <label className="block text-[11px] font-bold text-[#4A3B32]">Màu Đoạn giới thiệu (Intro)</label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="color"
+                    value={formData.introTextColor || '#F2E9DD'}
+                    onChange={(e) => setFormData({ ...formData, introTextColor: e.target.value })}
+                    className="w-7 h-7 rounded-lg cursor-pointer border border-[#D9CEBA] p-0.5"
+                  />
+                  <input
+                    type="text"
+                    value={formData.introTextColor || '#F2E9DD'}
+                    onChange={(e) => setFormData({ ...formData, introTextColor: e.target.value })}
+                    className="w-24 p-1 bg-white border border-[#D9CEBA] rounded-lg text-xs font-mono"
+                  />
+                  <div className="flex items-center space-x-1">
+                    {['#F2E9DD', '#FFFFFF', '#D4A25A', '#8C2320', '#007F32', '#2D241E'].map((hex) => (
+                      <button
+                        key={hex}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, introTextColor: hex })}
+                        className="w-4 h-4 rounded-full border border-black/20 cursor-pointer hover:scale-110 transition-transform"
+                        style={{ backgroundColor: hex }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Quote Color */}
+              <div className="sm:col-span-2 p-2.5 bg-[#FAF8F5] border border-[#E8DFC8] rounded-xl space-y-1">
+                <label className="block text-[11px] font-bold text-[#4A3B32]">Màu Trích dẫn (Quote)</label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="color"
+                    value={formData.quoteColor || '#F2E9DD'}
+                    onChange={(e) => setFormData({ ...formData, quoteColor: e.target.value })}
+                    className="w-7 h-7 rounded-lg cursor-pointer border border-[#D9CEBA] p-0.5"
+                  />
+                  <input
+                    type="text"
+                    value={formData.quoteColor || '#F2E9DD'}
+                    onChange={(e) => setFormData({ ...formData, quoteColor: e.target.value })}
+                    className="w-24 p-1 bg-white border border-[#D9CEBA] rounded-lg text-xs font-mono"
+                  />
+                  <div className="flex items-center space-x-1">
+                    {['#F2E9DD', '#FFFFFF', '#D4A25A', '#8C2320', '#007F32', '#2D241E'].map((hex) => (
+                      <button
+                        key={hex}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, quoteColor: hex })}
+                        className="w-4 h-4 rounded-full border border-black/20 cursor-pointer hover:scale-110 transition-transform"
+                        style={{ backgroundColor: hex }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Dynamic Buttons List Editor */}
           <BannerButtonsEditor
             buttons={formData.buttons || []}

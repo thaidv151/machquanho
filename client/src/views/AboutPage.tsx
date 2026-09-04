@@ -1,140 +1,173 @@
 import React from 'react';
-import { ViewState } from '../types';
-import { Sparkles, Heart, BookOpen } from 'lucide-react';
+import { ViewState, SiteConfig } from '../types';
+import { Compass, Users, BookOpen, Megaphone, Sparkles, Flower2 } from 'lucide-react';
+import { getOptimizedImageUrl } from '../utils/imageOptimizer';
 
 interface AboutPageProps {
   onNavigate: (view: ViewState) => void;
-  isPlayingAudio: boolean;
+  isPlayingAudio?: boolean;
+  siteConfig?: SiteConfig;
 }
 
 export const AboutPage: React.FC<AboutPageProps> = () => {
+  const bgImage = '/images/quan_ho_thuyen_rong.jpg';
+
   return (
-    <div id="about-us-page" className="min-h-screen bg-[#FAF8F5] pb-24">
-      
+    <div id="about-us-page" className="min-h-screen bg-[#FAF8F5]">
+
       {/* 1. Hero Banner */}
-      <div className="bg-[#2D1614] text-white py-16 sm:py-20 relative overflow-hidden">
+      <div className="bg-[#1F0C0A] text-white py-16 sm:py-24 relative overflow-hidden">
         <div className="absolute inset-0 z-0 opacity-40">
           <img
-            src="/images/quan_ho_thuyen_rong.jpg"
-            alt="Hát Quan họ trên thuyền rồng"
+            src={getOptimizedImageUrl(bgImage, 1400, 80)}
+            alt="Về dự án Mạch Quan Họ"
+            loading="lazy"
             className="w-full h-full object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#2D1614] via-[#2D1614]/70 to-black/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1F0C0A] via-[#1F0C0A]/75 to-black/60" />
         </div>
+
         <div className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-[#8C2320]/80 border border-[#E5B567]/40 text-[#E5B567] text-xs font-semibold uppercase tracking-wider mb-3 shadow-sm">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Giữ mạch di sản – Khơi mạch tương lai</span>
+          {/* Badge */}
+          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#8C2320]/80 border border-[#E5B567]/50 text-[#F5E6D3] text-xs uppercase font-bold tracking-widest mb-4 shadow-sm">
+            <span> KẾT NỐI QUÁ KHỨ – NỐI MẠCH TƯƠNG LAI</span>
           </div>
-          <h1 className="font-serif-culture text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white">
+
+          {/* Heading */}
+          <h1 className="font-serif-culture text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white max-w-4xl mx-auto leading-tight">
             Về dự án Mạch Quan Họ
           </h1>
-          <p className="text-sm sm:text-lg text-[#E0D5CE] max-w-3xl mx-auto mt-3 leading-relaxed font-serif-culture italic">
-            "Quan họ là câu ca kết nối cội nguồn quá khứ, nhịp thở hiện tại và mạch nguồn tương lai của vùng đất di sản Kinh Bắc."
+
+          {/* Subtitle */}
+          <p className="text-sm sm:text-base lg:text-lg text-[#E6DAD0] max-w-3xl mx-auto mt-4 leading-relaxed font-sans font-normal opacity-90">
+            Một không gian khám phá, kết nối và lan tỏa thông tin về Quan họ Bắc Ninh – di sản của cộng đồng, niềm tự hào của di sản.
           </p>
         </div>
       </div>
 
-      <div className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 pt-12 space-y-16">
-        
-        {/* 2. Story: Khởi nguồn di sản */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          <div className="lg:col-span-6 space-y-5">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-md bg-[#8C2320]/10 text-[#8C2320] text-xs font-bold uppercase tracking-wider">
-              <span>Đề tài nghiên cứu khoa học & di sản</span>
-            </div>
-            <h2 className="font-serif-culture text-2xl sm:text-4xl font-bold text-[#2D241E] leading-snug">
-              Khai thác & phát huy giá trị di sản Quan họ Bắc Ninh
+      {/* 2. Main Section: "Về dự án Mạch Quan Họ" + 4 Feature Cards */}
+      <section className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+
+          {/* Left Text Block */}
+          <div className="lg:col-span-4 space-y-4">
+            <h2 className="font-serif-culture text-2xl sm:text-3xl lg:text-4xl font-bold text-[#007f32] leading-tight">
+              Về dự án Mạch Quan Họ
             </h2>
-            <div className="space-y-4 text-sm sm:text-base text-[#5C4D44] leading-relaxed">
-              <p>
-                Dân ca Quan họ Bắc Ninh là hình thái sinh hoạt văn hóa dân gian độc đáo của người dân vùng châu thổ sông Cầu (Bắc Ninh & Bắc Giang). Với hệ thống làn điệu lề lối phong phú, lời ca tinh tế cùng triết lý ứng xử trọng tình trọng nghĩa, Quan họ đã được UNESCO chính thức ghi danh là <strong>Di sản Văn hóa Phi vật thể đại diện của Nhân loại</strong> vào năm 2009.
-              </p>
-              <p>
-                Dự án <strong>Mạch Quan Họ</strong> được xây dựng trong khuôn khổ đề tài nghiên cứu <em>"Chính sách khai thác và phát huy giá trị di sản dân ca Quan họ phục vụ phát triển công nghiệp văn hóa trên địa bàn tỉnh Bắc Ninh"</em>. Website đóng vai trò như một kho tư liệu mở trực tuyến, lưu giữ canh hát cổ, bản đồ 49 làng Quan họ gốc, tư liệu điền dã và tôn vinh những giá trị nghệ thuật truyền thống của quê hương.
-              </p>
+
+            {/* Lotus divider */}
+            <div className="flex items-center space-x-3 my-3 w-full">
+              <div className="flex-1 h-[1px] bg-[#8C2320]/30" />
+              <Sparkles className="w-3.5 h-3.5 text-[#8C2320] shrink-0 opacity-80" />
+              <div className="flex-1 h-[1px] bg-[#8C2320]/30" />
             </div>
 
-            <div className="grid grid-cols-3 gap-4 pt-2">
-              <div className="p-4 bg-white rounded-xl border border-[#E8DFC8] text-center shadow-xs">
-                <p className="font-serif-culture text-2xl sm:text-3xl font-bold text-[#8C2320]">2009</p>
-                <p className="text-[11px] text-[#8C6B50] font-medium mt-1">UNESCO ghi danh</p>
-              </div>
-              <div className="p-4 bg-white rounded-xl border border-[#E8DFC8] text-center shadow-xs">
-                <p className="font-serif-culture text-2xl sm:text-3xl font-bold text-[#8C2320]">49</p>
-                <p className="text-[11px] text-[#8C6B50] font-medium mt-1">Làng Quan họ gốc</p>
-              </div>
-              <div className="p-4 bg-white rounded-xl border border-[#E8DFC8] text-center shadow-xs">
-                <p className="font-serif-culture text-2xl sm:text-3xl font-bold text-[#8C2320]">200+</p>
-                <p className="text-[11px] text-[#8C6B50] font-medium mt-1">Làn điệu cổ truyền</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-6 relative">
-            <div className="rounded-3xl overflow-hidden shadow-xl border-2 border-[#E8DFC8] bg-[#2D1614]">
-              <img
-                src="/images/quan_ho_thuyen_rong.jpg"
-                alt="Sinh hoạt Hát Quan họ trên thuyền rồng tại sông Cầu - Bắc Ninh"
-                className="w-full h-[420px] object-cover hover:scale-105 transition-transform duration-500"
-              />
-            </div>
-            <div className="absolute -bottom-6 -left-6 bg-[#FAF8F5] p-4 rounded-2xl shadow-lg border border-[#E8DFC8] hidden sm:flex items-center space-x-3 max-w-sm">
-              <div className="w-10 h-10 rounded-full bg-[#8C2320] text-white flex items-center justify-center shrink-0">
-                <Sparkles className="w-5 h-5 text-[#E5B567]" />
-              </div>
-              <p className="text-xs text-[#2D241E] font-medium">
-                Hình ảnh sinh hoạt hát Quan họ giao duyên trên thuyền rồng đậm đà bản sắc Kinh Bắc
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* 3. Sứ mệnh & Trụ cột */}
-        <section className="bg-[#FAF6F0] p-8 sm:p-12 rounded-3xl border border-[#E8DFC8] space-y-8">
-          <div className="text-center max-w-2xl mx-auto space-y-2">
-            <h2 className="font-serif-culture text-2xl sm:text-3xl font-bold text-[#2D241E]">
-              Ba trụ cột bảo tồn & lan tỏa
-            </h2>
-            <p className="text-xs sm:text-sm text-[#7A6B60]">
-              Hành động thực chất vì sự trường tồn của văn hóa Kinh Bắc
+            <p className="text-base sm:text-lg text-[#3A2D25] font-medium leading-relaxed">
+              Mạch Quan Họ là không gian số dành cho tất cả những ai yêu mến Quan họ Bắc Ninh. Chúng tôi kết nối quá khứ với hiện tại, gắn kết cộng đồng và lan tỏa giá trị di sản bằng tri thức, công nghệ và những câu chuyện truyền cảm hứng.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-2xl border border-[#EDE5D8] space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-[#8C2320]/10 text-[#8C2320] flex items-center justify-center">
-                <BookOpen className="w-6 h-6" />
+          {/* Right 4 Feature Cards Grid */}
+          <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+
+            {/* Card 1: Khám phá */}
+            <div className="bg-[#FAF7F0] p-6 rounded-lg border border-[#E8DFC8] flex flex-col items-center text-center space-y-4 shadow-xs hover:shadow-md transition-all hover:-translate-y-1">
+              <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-[#EAE2D0]/70 text-[#006633] flex items-center justify-center border border-[#D9CEBA] shrink-0">
+                <Compass className="w-9 h-9 sm:w-9 sm:h-9 stroke-[1.8]" />
               </div>
-              <h3 className="font-serif-culture font-bold text-lg text-[#2D241E]">1. Số hóa điền dã</h3>
-              <p className="text-xs sm:text-sm text-[#6B5A4E] leading-relaxed">
-                Thu âm chất lượng cao các canh hát lề lối, phỏng vấn sâu các nghệ nhân cao niên và lập bản đồ các nhà chứa Quan họ cổ.
+              <h3 className="font-serif-culture text-xl font-bold text-[#2D241E]">
+                Khám phá
+              </h3>
+              <p className="text-xs sm:text-sm text-[#4A3A2F] leading-relaxed font-medium">
+                Khám phá di sản Quan họ qua tư liệu, câu chuyện và không gian văn hóa.
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl border border-[#EDE5D8] space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-[#8C2320]/10 text-[#8C2320] flex items-center justify-center">
-                <Heart className="w-6 h-6" />
+            {/* Card 2: Kết nối */}
+            <div className="bg-[#FAF7F0] p-6 rounded-lg border border-[#E8DFC8] flex flex-col items-center text-center space-y-4 shadow-xs hover:shadow-md transition-all hover:-translate-y-1">
+              <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-[#EAE2D0]/70 text-[#8C2320] flex items-center justify-center border border-[#D9CEBA] shrink-0">
+                <Users className="w-9 h-9 sm:w-9 sm:h-9 stroke-[1.8]" />
               </div>
-              <h3 className="font-serif-culture font-bold text-lg text-[#2D241E]">2. Tri ân Nghệ nhân</h3>
-              <p className="text-xs sm:text-sm text-[#6B5A4E] leading-relaxed">
-                Tôn vinh và hỗ trợ các bậc tiền bối, ghi nhận công lao truyền dạy không ngừng nghỉ của những "báu vật nhân văn sống".
+              <h3 className="font-serif-culture text-xl font-bold text-[#2D241E]">
+                Kết nối
+              </h3>
+              <p className="text-xs sm:text-sm text-[#4A3A2F] leading-relaxed font-medium">
+                Kết nối cộng đồng yêu Quan họ, nghệ nhân, câu lạc bộ và những người thực hành.
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl border border-[#EDE5D8] space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-[#8C2320]/10 text-[#8C2320] flex items-center justify-center">
-                <Sparkles className="w-6 h-6" />
+            {/* Card 3: Nghiên cứu */}
+            <div className="bg-[#FAF7F0] p-6 rounded-lg border border-[#E8DFC8] flex flex-col items-center text-center space-y-4 shadow-xs hover:shadow-md transition-all hover:-translate-y-1">
+              <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-[#EAE2D0]/70 text-[#B45309] flex items-center justify-center border border-[#D9CEBA] shrink-0">
+                <BookOpen className="w-9 h-9 sm:w-9 sm:h-9 stroke-[1.8]" />
               </div>
-              <h3 className="font-serif-culture font-bold text-lg text-[#2D241E]">3. Kết nối thế hệ trẻ</h3>
-              <p className="text-xs sm:text-sm text-[#6B5A4E] leading-relaxed">
-                Ứng dụng công nghệ web hiện đại, âm thanh tương tác và trải nghiệm trực quan để đưa Quan họ đến gần hơn với giới trẻ toàn cầu.
+              <h3 className="font-serif-culture text-xl font-bold text-[#2D241E]">
+                Nghiên cứu
+              </h3>
+              <p className="text-xs sm:text-sm text-[#4A3A2F] leading-relaxed font-medium">
+                Nghiên cứu, lưu trữ và chia sẻ tri thức khoa học về Quan họ Bắc Ninh.
               </p>
+            </div>
+
+            {/* Card 4: Lan tỏa */}
+            <div className="bg-[#FAF7F0] p-6 rounded-lg border border-[#E8DFC8] flex flex-col items-center text-center space-y-4 shadow-xs hover:shadow-md transition-all hover:-translate-y-1">
+              <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-[#EAE2D0]/70 text-[#006633] flex items-center justify-center border border-[#D9CEBA] shrink-0">
+                <Megaphone className="w-9 h-9 sm:w-9 sm:h-9 stroke-[1.8]" />
+              </div>
+              <h3 className="font-serif-culture text-xl font-bold text-[#2D241E]">
+                Lan tỏa
+              </h3>
+              <p className="text-xs sm:text-sm text-[#4A3A2F] leading-relaxed font-medium">
+                Lan tỏa giá trị Quan họ tới thế hệ trẻ và cộng đồng trong nước, quốc tế.
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* 3. Section 2: "Những người đi tìm mạch" */}
+      <section className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+
+          {/* Left Team Image */}
+          <div className="lg:col-span-5">
+            <div className="rounded-3xl overflow-hidden shadow-lg border border-[#E8DFC8]">
+              <img
+                src="/images/about_team_photo.jpg"
+                alt="Những người đi tìm mạch"
+                className="w-full h-[320px] sm:h-[380px] object-cover hover:scale-105 transition-transform duration-500"
+              />
             </div>
           </div>
-        </section>
 
+          {/* Right Text Block */}
+          <div className="lg:col-span-7 space-y-4">
+            <h2 className="font-serif-culture text-2xl sm:text-3xl lg:text-4xl font-bold text-[#007f32] leading-tight">
+              Những người đi tìm mạch
+            </h2>
+
+            {/* Lotus divider */}
+            <div className="flex items-center space-x-3 my-3 w-full">
+              <div className="flex-1 h-[1px] bg-[#8C2320]/30" />
+              <Sparkles className="w-3.5 h-3.5 text-[#8C2320] shrink-0 opacity-80" />
+              <div className="flex-1 h-[1px] bg-[#8C2320]/30" />
+            </div>
+
+            <p className="text-base sm:text-lg text-[#3A2D25] font-medium leading-relaxed">
+              Chúng tôi là một nhóm bạn trẻ – những người nghiên cứu, sinh viên và người yêu di sản, cùng chung niềm đam mê với Quan họ Bắc Ninh. Chúng tôi mong muốn học hỏi, ghi lại, chia sẻ và lan tỏa những giá trị tốt đẹp của di sản – để mạch nguồn Quan họ tiếp tục chảy trong đời sống hôm nay và mai sau.
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      {/* 4. Banner Ribbon above Footer */}
+      <div className="bg-[#8C2320] text-[#F9E8D0] py-4 px-4 text-center font-serif-culture font-bold text-base sm:text-lg tracking-wider border-t border-b border-[#E5B567]/30 shadow-inner">
+        Giữ mạch di sản – Nối mạch tương lai
       </div>
+
     </div>
   );
 };

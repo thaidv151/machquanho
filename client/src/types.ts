@@ -140,16 +140,21 @@ export interface BannerSlideItem {
   imageUrl: string;
   tagline?: string;
   taglineFontSize?: TaglineFontSize;
+  taglineColor?: string;
   headline?: string;
   headlineFontSize?: HeadlineFontSize;
+  headlineColor?: string;
   subtitle?: string;
   subtitleFontSize?: SubtitleFontSize;
+  subtitleColor?: string;
   introText?: string;
   introFontSize?: IntroFontSize;
+  introTextColor?: string;
   textAlign?: 'left' | 'center' | 'right';
   slideEffect?: BannerSlideEffect;
   textAnimation?: BannerTextAnimation;
   quote?: string;
+  quoteColor?: string;
   buttons?: BannerButtonItem[];
   // Backwards compatibility fallbacks
   showButton?: boolean;
@@ -162,6 +167,19 @@ export interface BannerSlideItem {
   button2Link?: string;
 }
 
+export interface SubpageBannerItem {
+  tagline?: string;
+  title: string;
+  description: string;
+  bgImage: string;
+}
+
+export interface SubpageBannersConfig {
+  news?: SubpageBannerItem;
+  research?: SubpageBannerItem;
+  about?: SubpageBannerItem;
+}
+
 export interface SiteBannerConfig {
   mode?: 'static' | 'slider';
   height?: 'small' | 'medium' | 'large' | 'full';
@@ -171,19 +189,25 @@ export interface SiteBannerConfig {
   textAnimation?: BannerTextAnimation;
   tagline?: string;
   taglineFontSize?: TaglineFontSize;
+  taglineColor?: string;
   headline: string;
   headlineFontSize?: HeadlineFontSize;
+  headlineColor?: string;
   subtitle: string;
   subtitleFontSize?: SubtitleFontSize;
+  subtitleColor?: string;
   introText: string;
   introFontSize?: IntroFontSize;
+  introTextColor?: string;
   imageUrl: string;
   buttonText: string;
   buttonLink: string;
   quote: string;
+  quoteColor?: string;
   textAlign?: 'left' | 'center' | 'right';
   buttons?: BannerButtonItem[];
   slides?: BannerSlideItem[];
+  pageBanners?: SubpageBannersConfig;
 }
 
 export interface FooterLinkItem {

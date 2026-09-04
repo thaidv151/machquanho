@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Article, ResearchEntry, ExploreTopic, SiteConfig, ViewState } from '../types';
 import { HomeHero } from '../components/HomeHero';
 import { HomeTimeline } from '../components/HomeTimeline';
@@ -6,11 +6,13 @@ import { HomeExploreCarousel } from '../components/HomeExploreCarousel';
 import { HomeTeamSection } from '../components/HomeTeamSection';
 import { Newspaper, Calendar, ArrowRight, Eye, Sparkles, Clock, Music } from 'lucide-react';
 import { audioPlayer } from '../utils/audioSynth';
+import { getOptimizedImageUrl } from '../utils/imageOptimizer';
+import { apiService } from '../services/apiService';
 
 interface HomePageProps {
-  articles: Article[];
-  researchEntries: ResearchEntry[];
-  exploreTopics: ExploreTopic[];
+  articles?: Article[];
+  researchEntries?: ResearchEntry[];
+  exploreTopics?: ExploreTopic[];
   siteConfig: SiteConfig;
   onNavigate: (view: ViewState) => void;
   onSelectTopic: (topicId: string) => void;
@@ -18,7 +20,7 @@ interface HomePageProps {
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
-  articles,
+  articles: initialArticles,
   researchEntries,
   exploreTopics,
   siteConfig,
@@ -26,6 +28,36 @@ export const HomePage: React.FC<HomePageProps> = ({
   onSelectTopic,
   isPlayingAudio
 }) => {
+  const [articles, setArticles] = useState<Article[]>(initialArticles || []);
+  const [loadingArticles, setLoadingArticles] = useState(!initialArticles || initialArticles.length === 0);
+
+  useEffect(() => {
+    if (initialArticles && initialArticles.length > 0) {
+      setArticles(initialArticles);
+      setLoadingArticles(false);
+    }
+  }, [initialArticles]);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (!initialArticles || initialArticles.length === 0) {
+      setLoadingArticles(true);
+      apiService.getArticles()
+        .then((data) => {
+          if (isMounted && data && data.length > 0) {
+            setArticles(data);
+          }
+        })
+        .catch((err) => console.warn('Failed to load articles in HomePage:', err))
+        .finally(() => {
+          if (isMounted) setLoadingArticles(false);
+        });
+    } else {
+      setLoadingArticles(false);
+    }
+    return () => { isMounted = false; };
+  }, []);
+
   // Published articles only for client view
   const publishedArticles = articles.filter(a => a.status === 'Đã đăng');
   const latestArticles = publishedArticles.slice(0, 8);
@@ -68,8 +100,19 @@ export const HomePage: React.FC<HomePageProps> = ({
               </button>
             </div>
 
-            {/* 4 Articles on 1 Single Row Grid inside 8-Col Section */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-y-6">
+            {/* 4 Articles Grid / Skeleton Loader */}
+            {loadingArticles ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-y-6 animate-pulse">
+                {[1, 2, 3, 4].map((n) => (
+                  <div key={n} className="bg-white rounded-2xl border border-[#E3D5C3] p-3 space-y-3">
+                    <div className="h-36 bg-[#E3D5C3]/60 rounded-xl"></div>
+                    <div className="h-4 bg-[#E3D5C3]/70 rounded w-3/4"></div>
+                    <div className="h-3 bg-[#E3D5C3]/40 rounded w-full"></div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-y-6">
               {latestArticles.map((article) => {
                 const articleSlugOrId = article.slug || article.id;
                 return (
@@ -82,8 +125,12 @@ export const HomePage: React.FC<HomePageProps> = ({
                     {/* Card Thumbnail */}
                     <div className="relative h-36 sm:h-44 overflow-hidden bg-[#0A3326]">
                       <img
-                        src={article.coverImage}
+                        src={getOptimizedImageUrl(article.coverImage, 600, 75)}
                         alt={article.title}
+                        loading="lazy"
+                        decoding="async"
+                        width={600}
+                        height={350}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -156,6 +203,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 );
               })}
             </div>
+            )}
 
             {/* Quick Explore Banner in News Section
             <div className="bg-[#E3D5C3]/40 p-5 rounded-2xl border border-[#E3D5C3] flex flex-col sm:flex-row items-center justify-between gap-4">

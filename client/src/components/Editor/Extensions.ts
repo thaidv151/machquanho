@@ -87,13 +87,55 @@ import { apiService } from '../../services/apiService'
 
 const imageExtensionConfigured = ImageExtension.configure({
     upload: async (file: File) => {
-        return apiService.uploadImage(file)
+        return apiService.uploadFile(file)
     },
 })
 
-const videoConfigured = Video.configure({
+export const CustomVideo = Video.extend({
+    renderHTML({ HTMLAttributes }) {
+        const src = HTMLAttributes.src || ''
+        const isDirectVideo = /\.(mp4|webm|ogg|mov|mkv|avi|flv|wmv)/i.test(src) || src.includes('/uploads/')
+        if (isDirectVideo) {
+            return [
+                'video',
+                {
+                    controls: 'controls',
+                    playsinline: 'playsinline',
+                    preload: 'metadata',
+                    src: src,
+                    style: 'width: 100%; max-height: 480px; border-radius: 12px; background: #000; display: block; margin: 12px 0;',
+                },
+            ]
+        }
+        return ['iframe', HTMLAttributes]
+    },
+    parseHTML() {
+        return [
+            {
+                tag: 'video',
+                getAttrs: (element) => {
+                    const el = element as HTMLElement
+                    return {
+                        src: el.getAttribute('src'),
+                    }
+                },
+            },
+            {
+                tag: 'iframe',
+                getAttrs: (element) => {
+                    const el = element as HTMLElement
+                    return {
+                        src: el.getAttribute('src'),
+                    }
+                },
+            },
+        ]
+    },
+})
+
+const videoConfigured = CustomVideo.configure({
     upload: async (file: File) => {
-        return apiService.uploadImage(file)
+        return apiService.uploadFile(file)
     },
 })
 
@@ -109,7 +151,7 @@ const importWordConfigured = ImportWord.configure({
 
 const attachmentConfigured = Attachment.configure({
     upload: async (file: File) => {
-        return apiService.uploadImage(file)
+        return apiService.uploadFile(file)
     },
 })
 
