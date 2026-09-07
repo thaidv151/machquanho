@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ExploreTopicController;
 use App\Http\Controllers\Api\ResearchEntryController;
 use App\Http\Controllers\Api\SiteConfigController;
+use App\Http\Controllers\Api\TimelineEntryController;
 use App\Http\Controllers\Api\TeamMemberController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\AuthController;
@@ -23,6 +24,7 @@ Route::get('/research-entries', [ResearchEntryController::class, 'index']);
 Route::get('/artisans', [ArtisanController::class, 'index']);
 Route::get('/explore-topics', [ExploreTopicController::class, 'index']);
 Route::get('/team-members', [TeamMemberController::class, 'index']);
+Route::get('/timeline-entries', [TimelineEntryController::class, 'index']);
 Route::get('/site-config', [SiteConfigController::class, 'index']);
 
 /*
@@ -92,6 +94,12 @@ Route::middleware('auth:api')->prefix('admin')->group(function () {
     Route::post('/team-members', [TeamMemberController::class, 'store']);
     Route::post('/team-members/{id}/update', [TeamMemberController::class, 'update']);
     Route::post('/team-members/{id}/delete', [TeamMemberController::class, 'destroy']);
+
+    // Timeline Entries Management
+    Route::post('/timeline-entries/GetData', [TimelineEntryController::class, 'adminGetData']);
+    Route::post('/timeline-entries', [TimelineEntryController::class, 'store']);
+    Route::post('/timeline-entries/{id}/update', [TimelineEntryController::class, 'update']);
+    Route::post('/timeline-entries/{id}/delete', [TimelineEntryController::class, 'destroy']);
 
     // Site Config Management
     Route::post('/site-config', [SiteConfigController::class, 'update']);

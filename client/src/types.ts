@@ -82,6 +82,20 @@ export interface TeamMember {
   isActive?: boolean;
 }
 
+export interface TimelineEntry {
+  id: number | string;
+  title: string;
+  period: string;
+  description: string;
+  image?: string;
+  icon?: string;
+  type: 'heritage' | 'policy';
+  sortOrder?: number;
+  isPublished?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface AdminUser {
   id: string;
   name: string;
@@ -106,8 +120,8 @@ export interface CategoryInfo {
 export interface HeaderNavItem {
   id: string;
   label: string;
-  viewType: 'home' | 'news' | 'research-diary' | 'about';
-  icon?: string; // Predefined icon key e.g. 'Home' | 'Newspaper' | 'BookOpen' | 'Users' | 'Sparkles' | 'Music' | 'Globe'
+  viewType: 'home' | 'news' | 'research-diary' | 'about' | 'timeline';
+  icon?: string; // Predefined icon key e.g. 'Home' | 'Newspaper' | 'BookOpen' | 'Users' | 'Sparkles' | 'Music' | 'Globe' | 'Clock'
   customIconUrl?: string; // Custom uploaded image URL
 }
 
@@ -278,5 +292,6 @@ export type ViewState =
   | { type: 'article-detail'; articleId: string }
   | { type: 'research-diary'; selectedId?: string }
   | { type: 'about' }
+  | { type: 'timeline' }
   | { type: 'explore-detail'; topicId: string }
-  | { type: 'admin'; section: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'footer' | 'seo' | 'scripts' };
+  | { type: 'admin'; section: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'timeline' | 'footer' | 'seo' | 'scripts' };

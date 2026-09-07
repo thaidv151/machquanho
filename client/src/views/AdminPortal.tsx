@@ -20,6 +20,7 @@ import { AdminSeoTab } from './admin/tabs/AdminSeoTab';
 import { AdminScriptsTab } from './admin/tabs/AdminScriptsTab';
 import { AdminExploreTab } from './admin/tabs/AdminExploreTab';
 import { AdminTeamTab } from './admin/tabs/AdminTeamTab';
+import { AdminTimelineTab } from './admin/tabs/AdminTimelineTab';
 import { HeaderNavItem, ResearchEntry, ExploreTopic, SiteFooterConfig, SiteSeoConfig, TeamMember } from '../types';
 
 import { UserFormModal } from './admin/modals/UserFormModal';
@@ -29,7 +30,7 @@ import { AdminResearchEditorPage } from './admin/pages/AdminResearchEditorPage';
 import { slugify } from '../utils/slugify';
 
 interface AdminPortalProps {
-  section: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'footer' | 'seo' | 'scripts';
+  section: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'timeline' | 'footer' | 'seo' | 'scripts';
   articles: Article[];
   users: AdminUser[];
   categories: CategoryInfo[];
@@ -65,7 +66,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   onLogout,
   onNavigate,
 }) => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'footer' | 'seo' | 'scripts'>(section || 'dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'timeline' | 'footer' | 'seo' | 'scripts'>(section || 'dashboard');
   const [toastState, setToastState] = useState<{ message: string; type: ToastType } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -75,6 +76,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       setActiveTab(section);
     }
   }, [section]);
+
+  // Fetch full list of admin articles (including drafts) on AdminPortal mount
+  useEffect(() => {
+    async function fetchAdminArticles() {
+      try {
+        const refreshed = await apiService.adminGetArticles();
+        onUpdateArticles(refreshed);
+      } catch (err) {
+        console.error('Failed to fetch admin articles:', err);
+      }
+    }
+    fetchAdminArticles();
+  }, []);
 
   // Toast Helper
   const showToast = (msg: string, type: ToastType = 'success') => {
@@ -814,6 +828,13 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               onUpdateMember={handleUpdateTeamMember}
               onDeleteMember={handleDeleteTeamMember}
               onRefresh={fetchTeamMembers}
+            />
+          )}
+
+          {activeTab === 'timeline' && (
+            <AdminTimelineTab
+              showToast={showToast}
+              onRequestConfirm={(opts) => setConfirmState({ isOpen: true, ...opts })}
             />
           )}
 

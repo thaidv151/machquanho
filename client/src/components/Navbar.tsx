@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ViewState, SiteConfig, AdminUser, HeaderNavItem } from '../types';
 import { 
   Search, Shield, Music, Menu, X, LogOut, BookOpen, Newspaper, Users, Home, 
-  ChevronDown, Sparkles, Globe, Bookmark, Award, Calendar 
+  ChevronDown, Sparkles, Globe, Bookmark, Award, Calendar, Clock 
 } from 'lucide-react';
 import { audioPlayer } from '../utils/audioSynth';
 
@@ -27,6 +27,7 @@ const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
   Bookmark,
   Award,
   Calendar,
+  Clock,
 };
 
 export const Navbar: React.FC<NavbarProps> = ({

@@ -39,8 +39,9 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     navItems: [
       { id: 'nav-1', label: 'Trang chủ', viewType: 'home', icon: 'Home' },
       { id: 'nav-2', label: 'Tin tức & Hoạt động', viewType: 'news', icon: 'Newspaper' },
-      { id: 'nav-3', label: 'Nhật ký nghiên cứu', viewType: 'research-diary', icon: 'BookOpen' },
-      { id: 'nav-4', label: 'Về chúng tôi', viewType: 'about', icon: 'Users' }
+      { id: 'nav-3', label: 'Dòng chảy Quan Họ', viewType: 'timeline', icon: 'Clock' },
+      { id: 'nav-4', label: 'Nhật ký nghiên cứu', viewType: 'research-diary', icon: 'BookOpen' },
+      { id: 'nav-5', label: 'Về chúng tôi', viewType: 'about', icon: 'Users' }
     ]
   },
   banner: {

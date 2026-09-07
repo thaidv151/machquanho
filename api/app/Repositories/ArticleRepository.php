@@ -59,8 +59,12 @@ class ArticleRepository extends BaseRepository
             });
         }
 
-        if (!empty($params['category'])) {
+        if (!empty($params['category']) && $params['category'] !== 'Tất cả') {
             $query->where('category_name', $params['category']);
+        }
+
+        if (!empty($params['status']) && $params['status'] !== 'Tất cả') {
+            $query->where('status', $params['status']);
         }
 
         $articles = $query->orderBy('id', 'desc')->get();

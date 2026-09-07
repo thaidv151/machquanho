@@ -3,9 +3,6 @@
 namespace App\Repositories;
 
 use App\Models\ResearchEntry;
-use Illuminate\Support\Facades\Cache;
-
-use Illuminate\Database\Eloquent\Model;
 
 class ResearchEntryRepository extends BaseRepository
 {
@@ -16,31 +13,11 @@ class ResearchEntryRepository extends BaseRepository
 
     public function getPublicEntries(): array
     {
-        return Cache::remember('public_research_entries', 300, function () {
-            return $this->model->newQuery()
-                ->orderBy('sort_order', 'asc')
-                ->orderBy('id', 'desc')
-                ->get()
-                ->toArray();
-        });
-    }
-
-    public function create(array $data): Model
-    {
-        Cache::forget('public_research_entries');
-        return parent::create($data);
-    }
-
-    public function update(int|string $id, array $data): Model
-    {
-        Cache::forget('public_research_entries');
-        return parent::update($id, $data);
-    }
-
-    public function delete(int|string $id): bool
-    {
-        Cache::forget('public_research_entries');
-        return parent::delete($id);
+        return $this->model->newQuery()
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('id', 'desc')
+            ->get()
+            ->toArray();
     }
 
     public function getAdminEntries(array $params): array

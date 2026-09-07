@@ -22,6 +22,7 @@ const NewsListPage = React.lazy(() => import('./views/NewsListPage').then(m => (
 const ArticleDetailPage = React.lazy(() => import('./views/ArticleDetailPage').then(m => ({ default: m.ArticleDetailPage })));
 const AboutPage = React.lazy(() => import('./views/AboutPage').then(m => ({ default: m.AboutPage })));
 const ResearchDiaryPage = React.lazy(() => import('./views/ResearchDiaryPage').then(m => ({ default: m.ResearchDiaryPage })));
+const TimelinePage = React.lazy(() => import('./views/TimelinePage').then(m => ({ default: m.TimelinePage })));
 const AdminPortal = React.lazy(() => import('./views/AdminPortal').then(m => ({ default: m.AdminPortal })));
 
 // Loading spinner fallback component for lazy route transitions
@@ -46,7 +47,7 @@ function getViewFromPath(path: string): ViewState {
   if (cleanPath.startsWith('/admin')) {
     const parts = cleanPath.split('/');
     const sec = parts[2] || 'dashboard';
-    const validSections = ['dashboard', 'articles', 'users', 'categories', 'banner', 'header', 'menus', 'research', 'explore', 'team', 'footer', 'seo', 'scripts'];
+    const validSections = ['dashboard', 'articles', 'users', 'categories', 'banner', 'header', 'menus', 'research', 'explore', 'team', 'timeline', 'footer', 'seo', 'scripts'];
     const section = (validSections.includes(sec) ? sec : 'dashboard') as any;
     return { type: 'admin', section };
   }
@@ -62,6 +63,9 @@ function getViewFromPath(path: string): ViewState {
   if (cleanPath === '/research-diary') {
     const selectedId = queryParams.get('id') || undefined;
     return { type: 'research-diary', selectedId };
+  }
+  if (cleanPath === '/timeline' || cleanPath === '/dong-chay-quan-ho') {
+    return { type: 'timeline' };
   }
   if (cleanPath === '/about') {
     return { type: 'about' };
@@ -85,6 +89,8 @@ function getPathFromView(view: ViewState): string {
       return `/article/${view.articleId}`;
     case 'research-diary':
       return view.selectedId ? `/research-diary?id=${encodeURIComponent(view.selectedId)}` : '/research-diary';
+    case 'timeline':
+      return '/timeline';
     case 'about':
       return '/about';
     default:
@@ -183,8 +189,12 @@ export default function App() {
     async function loadAdminData() {
       if (currentView.type === 'admin') {
         try {
-          const adminUsers = await apiService.adminGetUsers().catch(() => null);
+          const [adminUsers, adminArticles] = await Promise.all([
+            apiService.adminGetUsers().catch(() => null),
+            apiService.adminGetArticles().catch(() => null),
+          ]);
           if (adminUsers && adminUsers.length > 0) setUsers(adminUsers);
+          if (adminArticles) setArticles(adminArticles);
         } catch (err) {
           console.warn('Load admin data error:', err);
         }
@@ -386,6 +396,12 @@ export default function App() {
               onNavigate={handleNavigate}
               isPlayingAudio={isPlayingAudio}
               siteConfig={siteConfig}
+            />
+          )}
+
+          {currentView.type === 'timeline' && (
+            <TimelinePage
+              onNavigate={handleNavigate}
             />
           )}
 

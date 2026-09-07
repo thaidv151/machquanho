@@ -1,8 +1,25 @@
 import apiClient from './apiClient';
-import { Article, CategoryInfo, ResearchEntry, Artisan, ExploreTopic, SiteConfig, AdminUser, TeamMember } from '../types';
+import { Article, CategoryInfo, ResearchEntry, Artisan, ExploreTopic, SiteConfig, AdminUser, TeamMember, TimelineEntry } from '../types';
 import { DEFAULT_SITE_CONFIG } from '../data/mockData';
 
 // Helper normalizers to bridge Laravel snake_case DB fields with Frontend TS interfaces
+
+function normalizeTimelineEntry(item: any): TimelineEntry {
+  if (!item) return item;
+  return {
+    id: item.id,
+    title: item.title || '',
+    period: item.period || '',
+    description: item.description || '',
+    image: item.image || '',
+    icon: item.icon || 'landmark',
+    type: item.type === 'policy' ? 'policy' : 'heritage',
+    sortOrder: item.sort_order ?? item.sortOrder ?? 0,
+    isPublished: item.is_published !== undefined ? Boolean(item.is_published) : (item.isPublished !== undefined ? Boolean(item.isPublished) : true),
+    created_at: item.created_at,
+    updated_at: item.updated_at,
+  };
+}
 
 function normalizeTeamMember(item: any): TeamMember {
   if (!item) return item;
@@ -287,6 +304,14 @@ export const apiService = {
     });
   },
 
+  async getTimelineEntries(type?: 'heritage' | 'policy'): Promise<TimelineEntry[]> {
+    const key = `getTimelineEntries_${type || 'all'}`;
+    return fetchDeduplicated(key, async () => {
+      const res = await apiClient.get('/timeline-entries', { params: { type } });
+      return (res.data.data || []).map(normalizeTimelineEntry);
+    });
+  },
+
   // --- Auth Endpoints ---
   async login(credentials: { email: string; password: string }) {
     const res = await apiClient.post('/auth/login', credentials);
@@ -480,6 +505,53 @@ export const apiService = {
 
   async adminDeleteTeamMember(id: string | number) {
     const res = await apiClient.post(`/admin/team-members/${id}/delete`);
+    return res.data;
+  },
+
+  // Timeline Entries
+  async adminGetTimelineEntries(payload?: { type?: string; searchQuery?: string; pageIndex?: number; pageSize?: number }): Promise<{ data: TimelineEntry[]; totalItems: number; pageIndex: number; pageSize: number; totalPages: number }> {
+    const res = await apiClient.post('/admin/timeline-entries/GetData', payload || {});
+    return {
+      data: (res.data.data || []).map(normalizeTimelineEntry),
+      totalItems: res.data.totalItems || 0,
+      pageIndex: res.data.pageIndex || 1,
+      pageSize: res.data.pageSize || 20,
+      totalPages: res.data.totalPages || 1,
+    };
+  },
+
+  async adminCreateTimelineEntry(entry: Partial<TimelineEntry>): Promise<TimelineEntry> {
+    const payload = {
+      title: entry.title,
+      period: entry.period,
+      description: entry.description,
+      image: entry.image,
+      icon: entry.icon,
+      type: entry.type || 'heritage',
+      sort_order: entry.sortOrder,
+      is_published: entry.isPublished,
+    };
+    const res = await apiClient.post('/admin/timeline-entries', payload);
+    return normalizeTimelineEntry(res.data.data);
+  },
+
+  async adminUpdateTimelineEntry(id: string | number, entry: Partial<TimelineEntry>): Promise<TimelineEntry> {
+    const payload = {
+      title: entry.title,
+      period: entry.period,
+      description: entry.description,
+      image: entry.image,
+      icon: entry.icon,
+      type: entry.type,
+      sort_order: entry.sortOrder,
+      is_published: entry.isPublished,
+    };
+    const res = await apiClient.post(`/admin/timeline-entries/${id}/update`, payload);
+    return normalizeTimelineEntry(res.data.data);
+  },
+
+  async adminDeleteTimelineEntry(id: string | number) {
+    const res = await apiClient.post(`/admin/timeline-entries/${id}/delete`);
     return res.data;
   },
 

@@ -450,5 +450,7 @@ class DatabaseSeeder extends Seeder
                 ],
             ]
         );
+        // 8. Timeline Entries
+        $this->call(TimelineEntrySeeder::class);
     }
 }
