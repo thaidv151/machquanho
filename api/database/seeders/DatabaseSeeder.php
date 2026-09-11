@@ -455,5 +455,8 @@ class DatabaseSeeder extends Seeder
 
         // 9. Map Locations
         $this->call(MapLocationSeeder::class);
+
+        // 10. Menu Items
+        $this->call(MenuItemSeeder::class);
     }
 }

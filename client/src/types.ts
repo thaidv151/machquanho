@@ -120,7 +120,7 @@ export interface CategoryInfo {
 export interface HeaderNavItem {
   id: string;
   label: string;
-  viewType: 'home' | 'news' | 'research-diary' | 'about' | 'timeline' | 'map';
+  viewType: string; // E.g. 'home' | 'news' | '/about' | custom URL/path
   icon?: string; // Predefined icon key e.g. 'Home' | 'Newspaper' | 'BookOpen' | 'Users' | 'Sparkles' | 'Music' | 'Globe' | 'Clock'
   customIconUrl?: string; // Custom uploaded image URL
 }
@@ -253,6 +253,36 @@ export interface SiteFooterConfig {
   bottomLinks: FooterLinkItem[];
 }
 
+export interface MediaCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  orderIndex?: number;
+  isActive?: boolean;
+}
+
+export interface MediaPost {
+  id: string;
+  categoryId: string;
+  categoryName?: string;
+  categorySlug?: string;
+  title: string;
+  slug: string;
+  subTitle?: string;
+  description?: string;
+  content?: string;
+  mediaType: 'audio' | 'video' | 'youtube_embed' | 'local_upload';
+  mediaUrl?: string;
+  thumbnailUrl?: string;
+  duration?: string;
+  isFeatured?: boolean;
+  viewCount?: number;
+  playCount?: number;
+  status?: 'published' | 'draft';
+  publishedAt?: string;
+}
+
 export interface SiteSeoConfig {
   homeMetaTitle?: string;
   homeMetaDescription?: string;
@@ -329,5 +359,6 @@ export type ViewState =
   | { type: 'about' }
   | { type: 'timeline' }
   | { type: 'map'; locationId?: string }
+  | { type: 'nghe-quan-ho' }
   | { type: 'explore-detail'; topicId: string }
-  | { type: 'admin'; section: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'timeline' | 'map' | 'footer' | 'seo' | 'scripts' };
+  | { type: 'admin'; section: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'timeline' | 'map' | 'footer' | 'seo' | 'scripts' | 'media' };

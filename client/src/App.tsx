@@ -18,6 +18,8 @@ import { audioPlayer } from './utils/audioSynth';
 import { apiService } from './services/apiService';
 
 import { MapSection } from './components/MapSection';
+import { NgheQuanHoSection } from './components/NgheQuanHoSection';
+import { updateSeoMeta } from './utils/seo';
 
 // Lazy loading views for bundle optimization & code splitting
 const NewsListPage = React.lazy(() => import('./views/NewsListPage').then(m => ({ default: m.NewsListPage })));
@@ -49,7 +51,7 @@ function getViewFromPath(path: string): ViewState {
   if (cleanPath.startsWith('/admin')) {
     const parts = cleanPath.split('/');
     const sec = parts[2] || 'dashboard';
-    const validSections = ['dashboard', 'articles', 'users', 'categories', 'banner', 'header', 'menus', 'research', 'explore', 'team', 'timeline', 'map', 'footer', 'seo', 'scripts'];
+    const validSections = ['dashboard', 'articles', 'users', 'categories', 'banner', 'header', 'menus', 'research', 'explore', 'team', 'timeline', 'map', 'footer', 'seo', 'scripts', 'media'];
     const section = (validSections.includes(sec) ? sec : 'dashboard') as any;
     return { type: 'admin', section };
   }
@@ -71,6 +73,9 @@ function getViewFromPath(path: string): ViewState {
   }
   if (cleanPath === '/map' || cleanPath === '/ban-do-di-san') {
     return { type: 'map' };
+  }
+  if (cleanPath === '/nghe-quan-ho' || cleanPath === '/audio' || cleanPath === '/podcast') {
+    return { type: 'nghe-quan-ho' };
   }
   if (cleanPath === '/about') {
     return { type: 'about' };
@@ -98,6 +103,8 @@ function getPathFromView(view: ViewState): string {
       return '/timeline';
     case 'map':
       return '/map';
+    case 'nghe-quan-ho':
+      return '/nghe-quan-ho';
     case 'about':
       return '/about';
     default:
@@ -134,44 +141,101 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // 2. Verify Auth session on mount and handle protected path refresh
+  // 2. Verify Auth session on mount if token exists
   useEffect(() => {
     async function checkAuth() {
-      const user = await apiService.getMe();
-      if (user) {
-        setCurrentUser(user);
-      } else {
-        const initialView = getViewFromPath(window.location.pathname + window.location.search);
-        if (initialView.type === 'admin') {
-          setIsLoginModalOpen(true);
+      const token = localStorage.getItem('mqh_jwt_token');
+      if (token) {
+        const user = await apiService.getMe();
+        if (user) {
+          setCurrentUser(user);
+          return;
         }
+      }
+      const initialView = getViewFromPath(window.location.pathname + window.location.search);
+      if (initialView.type === 'admin') {
+        setIsLoginModalOpen(true);
       }
     }
     checkAuth();
   }, []);
 
-  // 3. Lazy Data Fetching: Fetch site config and public data on mount
+  // 2.5 Dynamic SEO Meta Updates on View Change
   useEffect(() => {
-    async function loadInitialPublicData() {
-      try {
-        const [config, arts, cats, resEntries, expTopics] = await Promise.all([
-          apiService.getSiteConfig().catch(() => null),
-          apiService.getArticles().catch(() => []),
-          apiService.getCategories().catch(() => []),
-          apiService.getResearchEntries().catch(() => []),
-          apiService.getExploreTopics().catch(() => []),
-        ]);
+    switch (currentView.type) {
+      case 'home':
+        updateSeoMeta({
+          description: siteConfig.seo?.homeMetaDescription || 'Nền tảng lưu giữ và phát triển Di sản Văn hóa Phi vật thể Dân ca Quan họ Bắc Ninh.',
+        });
+        break;
+      case 'news':
+        updateSeoMeta({
+          title: currentView.category ? `Chuyên mục: ${currentView.category}` : 'Tin tức & Hoạt động di sản',
+          description: 'Cập nhật tin tức mới nhất, sự kiện văn hóa và bài viết về Dân ca Quan họ Bắc Ninh.',
+        });
+        break;
+      case 'article-detail': {
+        const found = articles.find(a => a.slug === currentView.articleId || String(a.id) === String(currentView.articleId));
+        if (found) {
+          updateSeoMeta({
+            title: found.title,
+            description: found.excerpt,
+            image: found.coverImage,
+          });
+        }
+        break;
+      }
+      case 'nghe-quan-ho':
+        updateSeoMeta({
+          title: 'Nghe Quan họ - Làn điệu dân ca & Thấu chuyện di sản',
+          description: 'Thưởng thức các làn điệu Quan họ cổ, bài hát giao duyên, câu chuyện di sản và podcast truyền cảm hứng.',
+        });
+        break;
+      case 'research-diary':
+        updateSeoMeta({
+          title: 'Nhật ký nghiên cứu di sản Quan họ',
+          description: 'Hành trình điền dã, ghi chép và lưu trữ tư liệu sống cùng các nghệ nhân dân gian Kinh Bắc.',
+        });
+        break;
+      case 'timeline':
+        updateSeoMeta({
+          title: 'Dòng chảy Quan họ Bắc Ninh theo thời gian',
+          description: 'Lịch sử hình thành, dấu mốc di sản UNESCO và chính sách bảo tồn Dân ca Quan họ.',
+        });
+        break;
+      case 'map':
+        updateSeoMeta({
+          title: 'Bản đồ di sản Quan họ Bắc Ninh',
+          description: 'Khám phá các làng Quan họ cổ, nhà hát di sản và không gian diễn xướng văn hóa Kinh Bắc.',
+        });
+        break;
+      case 'about':
+        updateSeoMeta({
+          title: 'Về chúng tôi - Dự án Mạch Quan Họ',
+          description: 'Sứ mệnh lưu giữ, số hóa và kết nối di sản văn hóa phi vật thể Dân ca Quan họ với thế hệ trẻ.',
+        });
+        break;
+      case 'admin':
+        updateSeoMeta({
+          title: 'Hệ thống Quản trị CMS - Mạch Quan Họ',
+        });
+        break;
+    }
+  }, [currentView, articles, siteConfig]);
 
-        if (config && config.siteName) setSiteConfig((prev) => ({ ...prev, ...config }));
-        if (arts && arts.length > 0) setArticles(arts);
-        if (cats && cats.length > 0) setCategories(cats);
-        if (resEntries && resEntries.length > 0) setResearchEntries(resEntries);
-        if (expTopics && expTopics.length > 0) setExploreTopics(expTopics);
+  // 3. Fetch global site branding configuration once on mount
+  useEffect(() => {
+    async function loadSiteConfig() {
+      try {
+        const config = await apiService.getSiteConfig();
+        if (config && config.siteName) {
+          setSiteConfig((prev) => ({ ...prev, ...config }));
+        }
       } catch (err) {
-        console.warn('Load initial public data error:', err);
+        console.warn('Load site config error:', err);
       }
     }
-    loadInitialPublicData();
+    loadSiteConfig();
   }, []);
 
   // 4. Dynamic Favicon Sync based on uploaded logo image
@@ -414,6 +478,12 @@ export default function App() {
 
           {currentView.type === 'map' && (
             <MapSection standalonePage={true} />
+          )}
+
+          {currentView.type === 'nghe-quan-ho' && (
+            <main className="pt-4">
+              <NgheQuanHoSection />
+            </main>
           )}
 
           {currentView.type === 'research-diary' && (

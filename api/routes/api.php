@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\ArtisanController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ExploreTopicController;
 use App\Http\Controllers\Api\MapLocationController;
+use App\Http\Controllers\Api\MenuItemController;
 use App\Http\Controllers\Api\ResearchEntryController;
 use App\Http\Controllers\Api\SiteConfigController;
 use App\Http\Controllers\Api\TimelineEntryController;
@@ -13,11 +14,17 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\Api\MediaController;
+use App\Http\Controllers\Api\SitemapController;
+
 /*
 |--------------------------------------------------------------------------
 | Public Client Endpoints
 |--------------------------------------------------------------------------
 */
+Route::get('/sitemap.xml', [SitemapController::class, 'sitemapXml']);
+Route::get('/robots.txt', [SitemapController::class, 'robotsTxt']);
+Route::get('/sitemap-urls', [SitemapController::class, 'getUrls']);
 Route::get('/articles', [ArticleController::class, 'index']);
 Route::get('/articles/{idOrSlug}', [ArticleController::class, 'show']);
 Route::get('/categories', [CategoryController::class, 'index']);
@@ -30,6 +37,14 @@ Route::get('/site-config', [SiteConfigController::class, 'index']);
 Route::get('/map-locations', [MapLocationController::class, 'index']);
 Route::get('/map-locations/{id}', [MapLocationController::class, 'show']);
 Route::get('/map-config', [MapLocationController::class, 'getMapConfig']);
+Route::get('/menu-items', [MenuItemController::class, 'index']);
+
+// Media / Nghe Quan Ho API
+Route::get('/media/categories', [MediaController::class, 'getCategories']);
+Route::get('/media/posts', [MediaController::class, 'getPosts']);
+Route::get('/media/featured-today', [MediaController::class, 'getFeaturedToday']);
+Route::get('/media/posts/{slug}', [MediaController::class, 'show']);
+Route::post('/media/posts/{id}/increment-play', [MediaController::class, 'incrementPlay']);
 
 /*
 |--------------------------------------------------------------------------
@@ -112,6 +127,13 @@ Route::middleware('auth:api')->prefix('admin')->group(function () {
     Route::post('/map-locations/{id}/delete', [MapLocationController::class, 'destroy']);
     Route::post('/map-config', [MapLocationController::class, 'updateMapConfig']);
 
+    // Menu Items Management
+    Route::post('/menu-items/GetData', [MenuItemController::class, 'adminGetData']);
+    Route::post('/menu-items', [MenuItemController::class, 'store']);
+    Route::post('/menu-items/{id}/update', [MenuItemController::class, 'update']);
+    Route::post('/menu-items/{id}/delete', [MenuItemController::class, 'destroy']);
+    Route::post('/menu-items/reorder', [MenuItemController::class, 'reorder']);
+
     // Site Config Management
     Route::post('/site-config', [SiteConfigController::class, 'update']);
 
@@ -120,6 +142,17 @@ Route::middleware('auth:api')->prefix('admin')->group(function () {
     Route::post('/users', [UserController::class, 'store']);
     Route::post('/users/{id}/update', [UserController::class, 'update']);
     Route::post('/users/{id}/delete', [UserController::class, 'destroy']);
+
+    // Media / Nghe Quan Ho Management
+    Route::post('/media/categories/GetData', [MediaController::class, 'adminGetCategories']);
+    Route::post('/media/categories', [MediaController::class, 'storeCategory']);
+    Route::post('/media/categories/{id}/update', [MediaController::class, 'updateCategory']);
+    Route::post('/media/categories/{id}/delete', [MediaController::class, 'deleteCategory']);
+
+    Route::post('/media/posts/GetData', [MediaController::class, 'adminGetPosts']);
+    Route::post('/media/posts', [MediaController::class, 'storePost']);
+    Route::post('/media/posts/{id}/update', [MediaController::class, 'updatePost']);
+    Route::post('/media/posts/{id}/delete', [MediaController::class, 'deletePost']);
 
     // File Upload API
     Route::post('/upload', [\App\Http\Controllers\Api\UploadController::class, 'upload']);

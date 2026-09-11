@@ -1,11 +1,68 @@
 import React, { useState, useEffect } from 'react';
-import { Landmark, Scroll, Award, Sparkles, BookOpen, Globe, Medal, Calendar, ChevronRight, Clock, ShieldCheck, FileText } from 'lucide-react';
+import { Landmark, ShieldCheck, Clock, Loader2 } from 'lucide-react';
 import { TimelineEntry } from '../types';
 import apiService from '../services/apiService';
 
 interface TimelinePageProps {
   onNavigate?: (view: any) => void;
 }
+
+// Cultural Svg Icons in faded bronze/gold tone for Column 1
+const HeritageSvgIcon: React.FC<{ index: number; className?: string }> = ({ index, className = "w-14 h-14" }) => {
+  const iconIndex = index % 5;
+  switch (iconIndex) {
+    case 0:
+      // Ancient Banyan Tree / Cây đa làng
+      return (
+        <svg viewBox="0 0 64 64" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
+          <path d="M32 8C20 8 12 16 12 26C12 32 16 37 20 40C18 44 16 48 14 56H50C48 48 46 44 44 40C48 37 52 32 52 26C52 16 44 8 32 8Z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M32 26V56M26 38L32 46M38 34L32 42M24 24C28 22 36 22 40 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          <circle cx="20" cy="18" r="3" fill="currentColor" opacity="0.3"/>
+          <circle cx="44" cy="18" r="3" fill="currentColor" opacity="0.3"/>
+          <circle cx="32" cy="14" r="3.5" fill="currentColor" opacity="0.3"/>
+        </svg>
+      );
+    case 1:
+      // Village Gate / Cổng làng Kinh Bắc
+      return (
+        <svg viewBox="0 0 64 64" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 24C16 16 48 16 56 24" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+          <path d="M12 22V56M52 22V56" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+          <path d="M22 34H42V56H22V34Z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+          <path d="M18 16L32 8L46 16" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M26 42C26 38 38 38 38 42V56H26V42Z" fill="currentColor" opacity="0.2"/>
+        </svg>
+      );
+    case 2:
+      // Tower / Pagoda / Tháp Bút
+      return (
+        <svg viewBox="0 0 64 64" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
+          <path d="M24 16H40M20 28H44M16 40H48M12 52H52" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+          <path d="M32 6L32 16M26 16L24 28M38 16L40 28M22 28L20 40M42 28L44 40M18 40L16 52M46 40L48 52" stroke="currentColor" strokeWidth="2"/>
+          <path d="M28 52V58M36 52V58M10 58H54" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+        </svg>
+      );
+    case 3:
+      // Communal House / Mái đình làng cổ
+      return (
+        <svg viewBox="0 0 64 64" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 28C14 18 50 18 58 28L32 12L6 28Z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M14 28V54M50 28V54M26 28V54M38 28V54" stroke="currentColor" strokeWidth="2"/>
+          <path d="M10 54H54" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+          <path d="M20 18C26 14 38 14 44 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      );
+    case 4:
+    default:
+      // Lotus / Hoa sen di sản
+      return (
+        <svg viewBox="0 0 64 64" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
+          <path d="M32 12C28 20 20 28 8 32C20 36 28 44 32 52C36 44 44 36 56 32C44 28 36 20 32 12Z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <circle cx="32" cy="32" r="6" stroke="currentColor" strokeWidth="2" fill="currentColor" opacity="0.2"/>
+        </svg>
+      );
+  }
+};
 
 export const TimelinePage: React.FC<TimelinePageProps> = ({ onNavigate }) => {
   const [activeTab, setActiveTab] = useState<'heritage' | 'policy'>('heritage');
@@ -20,7 +77,7 @@ export const TimelinePage: React.FC<TimelinePageProps> = ({ onNavigate }) => {
     setLoading(true);
     try {
       const data = await apiService.getTimelineEntries(activeTab);
-      setEntries(data);
+      setEntries(data || []);
     } catch (error) {
       console.error('Error fetching timeline entries:', error);
     } finally {
@@ -28,155 +85,135 @@ export const TimelinePage: React.FC<TimelinePageProps> = ({ onNavigate }) => {
     }
   };
 
-  const getIconComponent = (iconName?: string) => {
-    switch (iconName) {
-      case 'scroll':
-        return <Scroll className="w-6 h-6 text-emerald-800" />;
-      case 'award':
-        return <Award className="w-6 h-6 text-amber-700" />;
-      case 'sparkles':
-        return <Sparkles className="w-6 h-6 text-amber-600" />;
-      case 'book':
-        return <BookOpen className="w-6 h-6 text-emerald-800" />;
-      case 'globe':
-        return <Globe className="w-6 h-6 text-blue-800" />;
-      case 'medal':
-        return <Medal className="w-6 h-6 text-yellow-700" />;
-      case 'policy':
-      case 'shield':
-        return <ShieldCheck className="w-6 h-6 text-red-800" />;
-      case 'document':
-        return <FileText className="w-6 h-6 text-indigo-800" />;
-      default:
-        return <Landmark className="w-6 h-6 text-emerald-800" />;
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-[#FAF8F5] py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      {/* Banner / Header */}
-      <div className="max-w-6xl mx-auto text-center mb-12">
-        <div className="inline-flex items-center space-x-2 bg-emerald-100/80 text-emerald-900 px-4 py-1.5 rounded-full text-sm font-semibold tracking-wide uppercase mb-4 border border-emerald-200">
-          <Clock className="w-4 h-4 text-emerald-800" />
-          <span>Hành Trình Di Sản Quan Họ</span>
-        </div>
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-[#2D241E] mb-4 tracking-tight">
-          DÒNG CHẢY QUAN HỌ
-        </h1>
-        <p className="text-base sm:text-lg text-stone-600 max-w-2xl mx-auto leading-relaxed">
-          {activeTab === 'heritage'
-            ? 'Hành trình hình thành, nuôi dưỡng và bảo tồn di sản văn hóa phi vật thể đại diện của nhân loại qua các thời kỳ lịch sử.'
-            : 'Những mốc chính sách, nghị quyết và chủ trương trọng tâm nhằm bảo tồn, phát huy giá trị Dân ca Quan họ Bắc Ninh.'}
-        </p>
+    <div className="min-h-screen bg-[#FAF6EF] py-10 px-4 sm:px-6 lg:px-12 font-sans">
+      <div className="max-w-6xl mx-auto">
+        
+        {/* Header Section matching reference image */}
+        <div className="text-center mb-8 sm:mb-10">
+          <p className="text-sm font-medium text-[#7A4B27] tracking-wide mb-3">
+            Hành trình hình thành và phát triển di sản
+          </p>
 
-        {/* Tab Selection Switcher */}
-        <div className="mt-8 inline-flex p-1.5 rounded-2xl bg-stone-200/80 backdrop-blur border border-stone-300 shadow-inner">
-          <button
-            onClick={() => setActiveTab('heritage')}
-            className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium text-sm transition-all duration-300 ${activeTab === 'heritage'
-                ? 'bg-gradient-to-r from-emerald-800 to-emerald-900 text-white shadow-md'
-                : 'text-stone-700 hover:text-stone-900 hover:bg-white/50'
+          {/* Tab Switcher Buttons */}
+          <div className="inline-flex p-1 rounded-xl bg-white border border-[#D8C7B5] shadow-xs space-x-1">
+            <button
+              onClick={() => setActiveTab('heritage')}
+              className={`px-6 sm:px-8 py-2.5 rounded-lg text-sm font-bold transition-all cursor-pointer ${
+                activeTab === 'heritage'
+                  ? 'bg-[#6D4321] text-white shadow-sm'
+                  : 'text-[#6D4321] hover:bg-[#FAF6EF] font-semibold'
               }`}
-          >
-            <Landmark className="w-4 h-4" />
-            <span>Dòng chảy di sản</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('policy')}
-            className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium text-sm transition-all duration-300 ${activeTab === 'policy'
-                ? 'bg-gradient-to-r from-amber-800 to-amber-900 text-white shadow-md'
-                : 'text-stone-700 hover:text-stone-900 hover:bg-white/50'
+            >
+              <span>Dòng chảy di sản</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('policy')}
+              className={`px-6 sm:px-8 py-2.5 rounded-lg text-sm font-bold transition-all cursor-pointer ${
+                activeTab === 'policy'
+                  ? 'bg-[#6D4321] text-white shadow-sm'
+                  : 'text-[#6D4321] hover:bg-[#FAF6EF] font-semibold'
               }`}
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span>Dòng chảy chính sách</span>
-          </button>
+            >
+              <span>Dòng chảy chính sách</span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Timeline Stream Content */}
-      <div className="max-w-5xl mx-auto relative">
+        {/* Timeline Content */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 space-y-4">
-            <div className="w-12 h-12 border-4 border-emerald-700 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-stone-600 font-medium">Đang tải dòng chảy lịch sử...</p>
+          <div className="flex flex-col items-center justify-center py-20 space-y-3">
+            <Loader2 className="w-10 h-10 text-[#6D4321] animate-spin" />
+            <p className="text-[#6D4321] font-medium text-sm">Đang tải dữ liệu dòng chảy lịch sử...</p>
           </div>
         ) : entries.length === 0 ? (
-          <div className="text-center py-16 bg-white/70 rounded-3xl border border-stone-200 shadow-sm">
-            <Clock className="w-12 h-12 text-stone-400 mx-auto mb-3" />
-            <p className="text-stone-600 text-lg font-medium">Chưa có mốc sự kiện nào trong thư mục này.</p>
+          <div className="text-center py-16 bg-white/60 rounded-2xl border border-[#E8DFC8]">
+            <Clock className="w-10 h-10 text-[#B89775] mx-auto mb-2" />
+            <p className="text-[#6D4321] font-medium">Chưa có mốc thời gian nào trong mục này.</p>
           </div>
         ) : (
-          <div className="relative">
-            {/* Center / Left Vertical Line */}
-            <div className="absolute left-6 md:left-1/2 top-4 bottom-4 w-1 bg-gradient-to-b from-emerald-700 via-amber-600 to-emerald-800 rounded-full opacity-30 transform -translate-x-1/2" />
+          <div className="relative space-y-3 sm:space-y-4">
+            {entries.map((item, index) => {
+              const isFirst = index === 0;
+              const isLast = index === entries.length - 1;
 
-            <div className="space-y-12">
-              {entries.map((item, index) => {
-                const isEven = index % 2 === 0;
-                const numberBadge = String(index + 1);
+              return (
+                <div key={item.id} className="relative flex flex-col md:grid md:grid-cols-12 gap-2 sm:gap-4 items-center group overflow-visible">
+                  
+                  {/* Column 1 (Leftmost): Cultural Icon (2 Cols on desktop) */}
+                  <div className="hidden md:flex col-span-2 justify-center items-center text-[#C4A482] opacity-75 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300">
+                    <HeritageSvgIcon index={index} className="w-13 h-13 lg:w-15 lg:h-15" />
+                  </div>
 
-                return (
-                  <div
-                    key={item.id}
-                    className={`relative flex flex-col md:flex-row items-center ${isEven ? 'md:flex-row-reverse' : ''
-                      } group`}
-                  >
-                    {/* Numbered Center Badge / Node */}
-                    <div className="absolute left-6 md:left-1/2 transform -translate-x-1/2 z-20 flex items-center justify-center">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-800 to-emerald-950 text-white font-serif font-bold text-lg border-4 border-[#FAF8F5] shadow-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        {numberBadge}
-                      </div>
+                  {/* Column 2 (Center Axis): Continuous Bold Timeline Line & Node (1 Col on desktop) */}
+                  <div className="hidden md:flex col-span-1 justify-center items-center relative self-stretch py-2">
+                    {/* Seamless Bold Vertical connecting line extending to join adjacent items */}
+                    <div 
+                      className={`absolute w-[2.5px] bg-[#8C6544] left-1/2 -translate-x-1/2 ${
+                        isFirst ? 'top-1/2 bottom-0' : isLast ? 'top-0 bottom-1/2' : 'top-0 bottom-0'
+                      }`} 
+                    />
+                    
+                    {/* Circle Node (Numbered 1, 2, 3...) */}
+                    <div className="relative z-10 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#6D4321] text-white font-bold text-xs sm:text-sm border-2 border-[#FAF6EF] shadow-xs flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-[#8B3A2B] transition-all">
+                      {index + 1}
                     </div>
 
-                    {/* Content Card (Left or Right) */}
-                    <div className="w-full md:w-[calc(50%-2.5rem)] pl-16 md:pl-0">
-                      <div className="bg-white/90 backdrop-blur rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-md hover:shadow-xl transition-all duration-300 relative overflow-hidden group-hover:border-emerald-300">
-                        {/* Cultural Icon Watermark */}
-                        <div className="absolute top-4 right-4 p-3 bg-emerald-50 rounded-2xl border border-emerald-100 opacity-90">
-                          {getIconComponent(item.icon)}
-                        </div>
+                    {/* Horizontal Branch Connector Line to Right Content */}
+                    <div className="absolute left-1/2 right-0 h-[2.5px] bg-[#8C6544]" />
+                  </div>
 
-                        {/* Era Time Period Title */}
-                        <div className="inline-block px-3.5 py-1 rounded-full bg-emerald-100/90 text-emerald-900 font-bold text-xs sm:text-sm tracking-wide mb-3 border border-emerald-200">
+                  {/* Mobile Header Badge for Node */}
+                  <div className="flex md:hidden items-center space-x-3 w-full pb-2 border-b border-[#E8DFC8]">
+                    <div className="w-7 h-7 rounded-full bg-[#6D4321] text-white font-bold text-xs flex items-center justify-center shrink-0">
+                      {index + 1}
+                    </div>
+                    <span className="font-bold text-base text-[#6D4321]">{item.period}</span>
+                  </div>
+
+                  {/* Column 3 (Right Content & Thumbnail): Transparent Background, Compact Spacing (9 Cols on desktop) */}
+                  <div className="col-span-12 md:col-span-9 w-full bg-transparent p-3 sm:p-4 rounded-xl transition-all duration-300">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6">
+                      
+                      {/* Text Info Block */}
+                      <div className="flex-1 space-y-1.5 min-w-0">
+                        <h3 className="font-bold text-base sm:text-lg lg:text-xl text-[#6D4321] leading-snug">
                           {item.period}
-                        </div>
-
-                        {/* Event Title */}
-                        <h3 className="text-xl sm:text-2xl font-serif font-bold text-[#2D241E] mb-3 leading-snug">
-                          {item.title}
                         </h3>
-
-                        {/* Event Description */}
-                        <p className="text-stone-600 text-sm sm:text-base leading-relaxed whitespace-pre-line mb-4">
+                        {item.title && (
+                          <h4 className="font-bold text-sm sm:text-base text-[#3E2D20] leading-snug">
+                            {item.title}
+                          </h4>
+                        )}
+                        <p className="text-xs sm:text-sm text-[#4A3B30] leading-relaxed whitespace-pre-line">
                           {item.description}
                         </p>
+                      </div>
 
-                        {/* Image Preview (if provided) */}
-                        {item.image && (
-                          <div className="mt-4 rounded-2xl overflow-hidden shadow-sm border border-stone-200 max-h-64 relative group/img">
+                      {/* Image Thumbnail (Right side) */}
+                      {item.image && (
+                        <div className="w-full lg:w-72 xl:w-80 shrink-0">
+                          <div className="aspect-[16/9] rounded-lg overflow-hidden border border-[#E5D7C5]/80 shadow-2xs group/img">
                             <img
                               src={item.image}
-                              alt={item.title}
+                              alt={item.title || item.period}
                               className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500"
                               loading="lazy"
                             />
                           </div>
-                        )}
-                      </div>
-                    </div>
+                        </div>
+                      )}
 
-                    {/* Empty Space for 2-column layout balancing */}
-                    <div className="hidden md:block w-[calc(50%-2.5rem)]" />
+                    </div>
                   </div>
-                );
-              })}
-            </div>
+
+                </div>
+              );
+            })}
           </div>
         )}
+
       </div>
-
-
     </div>
   );
 };

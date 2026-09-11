@@ -14,7 +14,7 @@ class UploadController extends Controller
     {
         try {
             $request->validate([
-                'file' => 'required|file|mimes:jpeg,jpg,png,gif,svg,webp,mp4,webm,ogg,mov,mkv,avi,flv,wmv,mp3,wav|max:102400',
+                'file' => 'required|file|mimes:jpeg,jpg,png,gif,svg,webp,mp4,webm,ogg,mov,mkv,avi,flv,wmv,mp3,wav,m4a,aac,flac,3gp|max:102400',
             ]);
 
             if ($request->hasFile('file')) {

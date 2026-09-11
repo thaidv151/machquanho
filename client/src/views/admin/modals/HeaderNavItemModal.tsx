@@ -80,17 +80,38 @@ export const HeaderNavItemModal: React.FC<HeaderNavItemModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#4A3B32] mb-1">Trang liên kết (Route)</label>
-            <select
-              value={formData.viewType}
+            <label className="block text-xs font-bold text-[#4A3B32] mb-1">
+              Trang liên kết (Route / Đường dẫn URL) *
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="VD: /map, /timeline, /news, /about, /... hoặc URL"
+              value={formData.viewType || ''}
               onChange={(e) => setFormData({ ...formData, viewType: e.target.value as any })}
-              className="w-full p-2.5 bg-[#FAF8F5] border border-[#D9CEBA] rounded-xl text-xs text-[#2D241E] focus:ring-2 focus:ring-[#8C2320]"
-            >
-              <option value="home">Trang chủ (/)</option>
-              <option value="news">Tin tức & Hoạt động (/news)</option>
-              <option value="research-diary">Nhật ký nghiên cứu (/research-diary)</option>
-              <option value="about">Về chúng tôi (/about)</option>
-            </select>
+              className="w-full p-2.5 bg-[#FAF8F5] border border-[#D9CEBA] rounded-xl text-xs font-semibold text-[#2D241E] focus:ring-2 focus:ring-[#8C2320]"
+            />
+            {/* Quick Suggestions */}
+            <div className="flex flex-wrap items-center gap-1.5 mt-2">
+              <span className="text-[10.5px] font-medium text-[#7A6B60]">Gợi ý nhanh:</span>
+              {[
+                { label: 'Trang chủ (/)', val: '/' },
+                { label: 'Tin tức (/news)', val: '/news' },
+                { label: 'Nhật ký (/research-diary)', val: '/research-diary' },
+                { label: 'Bản đồ (/map)', val: '/map' },
+                { label: 'Dòng chảy (/timeline)', val: '/timeline' },
+                { label: 'Về chúng tôi (/about)', val: '/about' },
+              ].map((preset) => (
+                <button
+                  key={preset.val}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, viewType: preset.val as any })}
+                  className="px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-[#E8DFC8]/60 hover:bg-[#8C2320] hover:text-white text-[#4A3B32] transition-colors cursor-pointer"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div>

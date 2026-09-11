@@ -4,6 +4,7 @@ import { HomeHero } from '../components/HomeHero';
 import { HomeTimeline } from '../components/HomeTimeline';
 import { HomeExploreCarousel } from '../components/HomeExploreCarousel';
 import { HomeTeamSection } from '../components/HomeTeamSection';
+import { NgheQuanHoSection } from '../components/NgheQuanHoSection';
 import { Newspaper, Calendar, ArrowRight, Eye, Sparkles, Clock, Music } from 'lucide-react';
 import { audioPlayer } from '../utils/audioSynth';
 import { getOptimizedImageUrl } from '../utils/imageOptimizer';
@@ -22,40 +23,42 @@ interface HomePageProps {
 
 export const HomePage: React.FC<HomePageProps> = ({
   articles: initialArticles,
-  researchEntries,
-  exploreTopics,
+  researchEntries: initialResearchEntries,
+  exploreTopics: initialExploreTopics,
   siteConfig,
   onNavigate,
   onSelectTopic,
   isPlayingAudio
 }) => {
   const [articles, setArticles] = useState<Article[]>(initialArticles || []);
+  const [researchEntries, setResearchEntries] = useState<ResearchEntry[]>(initialResearchEntries || []);
+  const [exploreTopics, setExploreTopics] = useState<ExploreTopic[]>(initialExploreTopics || []);
   const [loadingArticles, setLoadingArticles] = useState(!initialArticles || initialArticles.length === 0);
 
   useEffect(() => {
-    if (initialArticles && initialArticles.length > 0) {
-      setArticles(initialArticles);
-      setLoadingArticles(false);
-    }
-  }, [initialArticles]);
-
-  useEffect(() => {
     let isMounted = true;
-    if (!initialArticles || initialArticles.length === 0) {
-      setLoadingArticles(true);
-      apiService.getArticles()
-        .then((data) => {
-          if (isMounted && data && data.length > 0) {
-            setArticles(data);
-          }
-        })
-        .catch((err) => console.warn('Failed to load articles in HomePage:', err))
-        .finally(() => {
-          if (isMounted) setLoadingArticles(false);
-        });
-    } else {
-      setLoadingArticles(false);
-    }
+    const fetchHomeData = async () => {
+      try {
+        setLoadingArticles(true);
+        const [arts, resData, topicsData] = await Promise.all([
+          (!initialArticles || initialArticles.length === 0) ? apiService.getArticles().catch(() => []) : Promise.resolve(initialArticles),
+          (!initialResearchEntries || initialResearchEntries.length === 0) ? apiService.getResearchEntries().catch(() => []) : Promise.resolve(initialResearchEntries),
+          (!initialExploreTopics || initialExploreTopics.length === 0) ? apiService.getExploreTopics().catch(() => []) : Promise.resolve(initialExploreTopics)
+        ]);
+
+        if (isMounted) {
+          if (arts && arts.length > 0) setArticles(arts);
+          if (resData && resData.length > 0) setResearchEntries(resData);
+          if (topicsData && topicsData.length > 0) setExploreTopics(topicsData);
+        }
+      } catch (err) {
+        console.warn('Failed to load home page data:', err);
+      } finally {
+        if (isMounted) setLoadingArticles(false);
+      }
+    };
+
+    fetchHomeData();
     return () => { isMounted = false; };
   }, []);
 
@@ -73,7 +76,10 @@ export const HomePage: React.FC<HomePageProps> = ({
         isPlayingAudio={isPlayingAudio}
       />
 
-      {/* 2. Main Two-Column Content: News & Activities (8 cols) + Research Timeline (4 cols) */}
+      {/* 2. NGHE QUAN HỌ (Đã ẩn khỏi Trang chủ, chỉ hiển thị ở trang riêng) */}
+      {/* <NgheQuanHoSection onNavigateAll={() => onNavigate({ type: 'news' })} /> */}
+
+      {/* 3. Main Two-Column Content: News & Activities (8 cols) + Research Timeline (4 cols) */}
       <section className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
 
@@ -243,8 +249,8 @@ export const HomePage: React.FC<HomePageProps> = ({
         onSelectTopic={onSelectTopic}
       />
 
-      {/* 4. Bản đồ di sản Mạch Quan Họ */}
-      <MapSection />
+      {/* 4. Bản đồ di sản Mạch Quan Họ (Đã ẩn khỏi Trang chủ, chỉ hiển thị ở trang riêng /map) */}
+      {/* <MapSection /> */}
 
       {/* 5. Về nhóm nghiên cứu */}
       <HomeTeamSection />

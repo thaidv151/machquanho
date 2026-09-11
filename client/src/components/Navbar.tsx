@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ViewState, SiteConfig, AdminUser, HeaderNavItem } from '../types';
-import { 
-  Search, Shield, Music, Menu, X, LogOut, BookOpen, Newspaper, Users, Home, 
-  ChevronDown, Sparkles, Globe, Bookmark, Award, Calendar, Clock, MapPin 
+import {
+  Search, Shield, Music, Menu, X, LogOut, BookOpen, Newspaper, Users, Home,
+  ChevronDown, Sparkles, Globe, Bookmark, Award, Calendar, Clock, MapPin
 } from 'lucide-react';
 import { audioPlayer } from '../utils/audioSynth';
+import { apiService } from '../services/apiService';
 
 interface NavbarProps {
   currentView: ViewState;
@@ -59,23 +60,66 @@ export const Navbar: React.FC<NavbarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const [dbMenuItems, setDbMenuItems] = useState<HeaderNavItem[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    apiService.getMenuItems().then((data) => {
+      if (isMounted && data && data.length > 0) {
+        setDbMenuItems(data);
+      }
+    });
+    return () => { isMounted = false; };
+  }, []);
+
   // Header configs from siteConfig
   const headerConfig = siteConfig.header || {
     topNoticeText: 'Di sản Văn hóa Phi vật thể đại diện của Nhân loại - UNESCO 2009',
     topSubText: 'Kinh Bắc - Vùng đất địa linh nhân kiệt',
     topAudioCtaText: 'Nghe Quan họ',
-    navItems: [
-      { id: 'nav-1', label: 'Trang chủ', viewType: 'home', icon: 'Home' },
-      { id: 'nav-2', label: 'Tin tức & Hoạt động', viewType: 'news', icon: 'Newspaper' },
-      { id: 'nav-3', label: 'Nhật ký nghiên cứu', viewType: 'research-diary', icon: 'BookOpen' },
-      { id: 'nav-4', label: 'Về chúng tôi', viewType: 'about', icon: 'Users' }
-    ]
   };
 
-  const navItemsList = headerConfig.navItems || [];
+  const navItemsList = dbMenuItems.length > 0
+    ? dbMenuItems
+    : (siteConfig.header?.navItems || [
+      { id: 'nav-1', label: 'Trang chủ', viewType: '/', icon: 'Home' },
+      { id: 'nav-2', label: 'Tin tức & Hoạt động', viewType: '/news', icon: 'Newspaper' },
+      { id: 'nav-3', label: 'Nghe Quan họ', viewType: '/nghe-quan-ho', icon: 'Music' },
+      { id: 'nav-4', label: 'Nhật ký nghiên cứu', viewType: '/research-diary', icon: 'BookOpen' },
+      { id: 'nav-5', label: 'Dòng chảy Quan họ', viewType: '/timeline', icon: 'Calendar' },
+      { id: 'nav-6', label: 'Bản đồ di sản', viewType: '/map', icon: 'MapPin' },
+      { id: 'nav-7', label: 'Về chúng tôi', viewType: '/about', icon: 'Users' }
+    ]);
+
+  const resolveViewState = (viewTypeRaw: string): ViewState => {
+    if (!viewTypeRaw) return { type: 'home' };
+    const clean = viewTypeRaw.trim().toLowerCase();
+
+    if (clean === 'home' || clean === '/' || clean === '') return { type: 'home' };
+    if (clean === 'news' || clean === '/news') return { type: 'news' };
+    if (clean === 'nghe-quan-ho' || clean === '/nghe-quan-ho' || clean === '/audio' || clean === '/podcast') return { type: 'nghe-quan-ho' };
+    if (clean === 'research-diary' || clean === '/research-diary') return { type: 'research-diary' };
+    if (clean === 'about' || clean === '/about') return { type: 'about' };
+    if (clean === 'timeline' || clean === '/timeline' || clean === '/dong-chay-quan-ho') return { type: 'timeline' };
+    if (clean === 'map' || clean === '/map' || clean === '/ban-do-di-san') return { type: 'map' };
+    if (clean.startsWith('/admin') || clean === 'admin') return { type: 'admin', section: 'dashboard' };
+
+    if (clean.startsWith('/')) {
+      const main = clean.split('?')[0].split('/')[1];
+      if (main === 'news') return { type: 'news' };
+      if (main === 'nghe-quan-ho') return { type: 'nghe-quan-ho' };
+      if (main === 'research-diary') return { type: 'research-diary' };
+      if (main === 'timeline') return { type: 'timeline' };
+      if (main === 'map') return { type: 'map' };
+      if (main === 'about') return { type: 'about' };
+    }
+
+    return { type: 'home' };
+  };
 
   const isActive = (itemType: string) => {
-    return currentView.type === itemType;
+    const target = resolveViewState(itemType);
+    return currentView.type === target.type;
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -89,10 +133,10 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const renderItemIcon = (item: HeaderNavItem) => {
     if (item.customIconUrl) {
-      return <img src={item.customIconUrl} alt={item.label} className="w-4 h-4 object-contain shrink-0" />;
+      return <img src={item.customIconUrl} alt={item.label} className="w-3.5 h-3.5 object-contain shrink-0" />;
     }
     const IconComponent = ICON_MAP[item.icon || 'Home'] || Home;
-    return <IconComponent className="w-4 h-4 opacity-80 shrink-0" />;
+    return <IconComponent className="w-3.5 h-3.5 opacity-80 shrink-0" />;
   };
 
   return (
@@ -107,9 +151,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="hidden sm:flex items-center space-x-4">
             <span className="text-[#D4A25A]">{headerConfig.topSubText || 'Kinh Bắc - Vùng đất địa linh nhân kiệt'}</span>
             <span className="text-[#D4A25A]/40">|</span>
-            <button 
+            <button
               id="header-listen-cta"
-              onClick={() => audioPlayer.toggle('Hát giao duyên: Khách Đến Chơi Nhà')}
+              onClick={() => onNavigate({ type: 'nghe-quan-ho' })}
               className="flex items-center space-x-1 hover:text-[#D4A25A] transition-colors cursor-pointer text-[#F2E9DD]"
             >
               <Music className={`w-3.5 h-3.5 ${isPlayingAudio ? 'text-[#D4A25A] animate-bounce' : ''}`} />
@@ -121,51 +165,52 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Main Navigation Header */}
       <header id="main-header" className="sticky top-0 z-40 bg-[#F2E9DD]/95 backdrop-blur-md border-b border-[#E3D5C3] shadow-xs">
-        <div className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            
-            {/* Logo Brand */}
-            <div 
-              id="site-brand-logo"
-              onClick={() => onNavigate({ type: 'home' })}
-              className="flex items-center space-x-3.5 cursor-pointer group select-none"
-            >
-              {siteConfig.logoType === 'image' && siteConfig.logoImageUrl ? (
-                <img 
-                  src={siteConfig.logoImageUrl} 
-                  alt={siteConfig.logoText || 'Logo'} 
-                  className="h-11 object-contain group-hover:scale-105 transition-transform" 
-                />
-              ) : (
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#114D3A] to-[#1D7358] flex items-center justify-center text-[#F2E9DD] shadow-sm border border-[#0D3B2C] group-hover:scale-105 transition-transform">
-                  <span className="font-serif-culture text-xl font-bold tracking-tight">MQ</span>
-                </div>
-              )}
+        <div className="max-w-[1480px] mx-auto px-3 sm:px-4">
+          <div className="flex items-center justify-between h-20 gap-2 sm:gap-3">
 
-              <div className="flex flex-col">
-                <span className="font-serif-culture text-xl sm:text-2xl font-bold tracking-tight text-[#114D3A] group-hover:text-[#8C2F2F] transition-colors">
-                  {siteConfig.logoText || 'MẠCH QUAN HỌ'}
-                </span>
-                <span className="text-[10.5px] uppercase tracking-widest font-bold text-[#8C2F2F]">
-                  {siteConfig.logoSubtext || 'Kinh Bắc Di Sản'}
-                </span>
+            {/* Brand Logo & Text (Shrink-0) */}
+            <div className="flex items-center shrink-0">
+              <div
+                id="site-brand-logo"
+                onClick={() => onNavigate({ type: 'home' })}
+                className="flex items-center space-x-2.5 cursor-pointer group select-none shrink-0"
+              >
+                {siteConfig.logoType === 'image' && siteConfig.logoImageUrl ? (
+                  <img
+                    src={siteConfig.logoImageUrl}
+                    alt={siteConfig.logoText || 'Logo'}
+                    className="h-10 sm:h-11 object-contain group-hover:scale-105 transition-transform shrink-0"
+                  />
+                ) : (
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-[#114D3A] to-[#1D7358] flex items-center justify-center text-[#F2E9DD] shadow-sm border border-[#0D3B2C] group-hover:scale-105 transition-transform shrink-0">
+                    <span className="font-serif-culture text-lg sm:text-xl font-bold tracking-tight">MQ</span>
+                  </div>
+                )}
+
+                <div className="flex flex-col shrink-0 min-w-0 max-w-[170px] sm:max-w-[210px] justify-center">
+                  <span className="font-serif-culture text-base sm:text-lg font-bold tracking-tight text-[#114D3A] group-hover:text-[#8C2F2F] transition-colors leading-tight">
+                    {siteConfig.logoText || 'MẠCH QUAN HỌ'}
+                  </span>
+                  <span className="text-[8.5px] sm:text-[11.5px]  tracking-wider font-bold text-[#8C2F2F] leading-[1.1]  line-clamp-2 mt-0.5">
+                    {siteConfig.logoSubtext || 'Kinh Bắc Di Sản'}
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* Dynamic Desktop Navigation Links */}
-            <nav id="desktop-nav-menu" className="hidden lg:flex items-center space-x-2 xl:space-x-3">
+            {/* Dynamic Desktop Navigation Links (Space Optimized - Fills Middle Area) */}
+            <nav id="desktop-nav-menu" className="hidden lg:flex items-center justify-evenly flex-1 py-1 overflow-x-auto scrollbar-none">
               {navItemsList.map((item) => {
                 const active = isActive(item.viewType);
                 return (
                   <button
                     key={item.id}
                     id={`nav-link-${item.viewType}`}
-                    onClick={() => onNavigate({ type: item.viewType } as ViewState)}
-                    className={`px-3 py-2.5 text-sm font-bold transition-all flex items-center space-x-2 cursor-pointer relative ${
-                      active
-                        ? 'text-[#8C2320] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#8C2320] after:rounded-full'
-                        : 'text-[#2D241E] hover:text-[#8C2320] hover:bg-[#E3D5C3]/40 rounded-lg'
-                    }`}
+                    onClick={() => onNavigate(resolveViewState(item.viewType))}
+                    className={`px-1 py-1 text-[11.5px] xl:text-[12.5px] font-bold transition-all flex items-center space-x-1 cursor-pointer relative whitespace-nowrap shrink-0 ${active
+                      ? 'text-[#8C2320] after:absolute after:bottom-0 after:left-1 after:right-1 after:h-0.5 after:bg-[#8C2320] after:rounded-full'
+                      : 'text-[#2D241E] hover:text-[#8C2320] hover:bg-[#E3D5C3]/50 rounded-lg'
+                      }`}
                   >
                     {renderItemIcon(item)}
                     <span>{item.label}</span>
@@ -174,8 +219,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               })}
             </nav>
 
-            {/* Right Tools & User Account Dropdown */}
-            <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Search Tool & User Account Dropdown (Right Shrink-0) */}
+            <div className="flex items-center justify-end space-x-2 sm:space-x-3 shrink-0">
               {/* Search Toggle Button */}
               <button
                 id="search-toggle-btn"
@@ -186,38 +231,32 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Search className="w-5 h-5" />
               </button>
 
-              {/* Account Dropdown Menu */}
+              {/* Account Dropdown Menu (Circular Avatar Button) */}
               <div className="relative" ref={dropdownRef}>
                 <button
                   id="user-account-dropdown-trigger"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-[#E3D5C3]/50 border border-[#D4A25A]/60 hover:bg-[#D4A25A]/20 transition-all cursor-pointer text-xs font-bold text-[#114D3A]"
+                  className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer shadow-sm border border-[#D4A25A]/60 bg-[#E3D5C3]/40 hover:bg-[#D4A25A]/30 hover:scale-105 active:scale-95 ${isDropdownOpen ? 'ring-2 ring-[#8C2320] ring-offset-2 ring-offset-[#FAF8F5]' : ''
+                    }`}
+                  title={currentUser ? `Tài khoản: ${currentUser.name}` : 'Tài khoản Quản trị CMS'}
                 >
                   {currentUser ? (
-                    <>
-                      <img
-                        src={currentUser.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"}
-                        alt={currentUser.name}
-                        className="w-6 h-6 rounded-full object-cover border border-[#114D3A]"
-                      />
-                      <span className="max-w-[120px] truncate hidden sm:inline font-bold">
-                        {currentUser.name}
-                      </span>
-                      <ChevronDown className={`w-3.5 h-3.5 text-[#8C2320] transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                    </>
+                    <img
+                      src={currentUser.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"}
+                      alt={currentUser.name}
+                      className="w-full h-full rounded-full object-cover p-0.5"
+                    />
                   ) : (
-                    <>
-                      <Shield className="w-4 h-4 text-[#B83E3E]" />
-                      <span>Quản trị CMS</span>
-                      <ChevronDown className={`w-3.5 h-3.5 text-[#8C2320] transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                    </>
+                    <div className="w-full h-full rounded-full flex items-center justify-center bg-[#8C2320] text-white shadow-inner">
+                      <Shield className="w-4.5 h-4.5" />
+                    </div>
                   )}
                 </button>
 
                 {/* Floating Dropdown Card */}
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-64 bg-white border border-[#E2D6C3] rounded-2xl shadow-xl py-2 z-50 animate-scaleUp text-xs">
-                    
+
                     {/* User Info Header */}
                     {currentUser ? (
                       <div className="px-4 py-3 border-b border-[#F0EBE1] flex items-center space-x-3 bg-[#FAF8F5]">
@@ -327,14 +366,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={item.id}
                   onClick={() => {
-                    onNavigate({ type: item.viewType } as ViewState);
+                    onNavigate(resolveViewState(item.viewType));
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left text-sm font-medium transition-colors ${
-                    active
-                      ? 'bg-[#8C2320]/10 text-[#8C2320] font-bold border-l-4 border-[#8C2320]'
-                      : 'text-[#2D241E] hover:bg-[#E3D5C3]/60'
-                  }`}
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left text-sm font-medium transition-colors ${active
+                    ? 'bg-[#8C2320]/10 text-[#8C2320] font-bold border-l-4 border-[#8C2320]'
+                    : 'text-[#2D241E] hover:bg-[#E3D5C3]/60'
+                    }`}
                 >
                   {renderItemIcon(item)}
                   <span>{item.label}</span>

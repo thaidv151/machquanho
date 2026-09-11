@@ -1,8 +1,44 @@
 import apiClient from './apiClient';
-import { Article, CategoryInfo, ResearchEntry, Artisan, ExploreTopic, SiteConfig, AdminUser, TeamMember, TimelineEntry, MapLocation, MapConfig } from '../types';
+import { Article, CategoryInfo, ResearchEntry, Artisan, ExploreTopic, SiteConfig, AdminUser, TeamMember, TimelineEntry, MapLocation, MapConfig, HeaderNavItem, MediaCategory, MediaPost } from '../types';
 import { DEFAULT_SITE_CONFIG } from '../data/mockData';
 
 // Helper normalizers to bridge Laravel snake_case DB fields with Frontend TS interfaces
+
+function normalizeMediaCategory(item: any): MediaCategory {
+  if (!item) return item;
+  return {
+    id: String(item.id),
+    name: item.name || '',
+    slug: item.slug || '',
+    description: item.description,
+    orderIndex: item.order_index ?? item.orderIndex ?? 0,
+    isActive: item.is_active !== undefined ? Boolean(item.is_active) : true,
+  };
+}
+
+function normalizeMediaPost(item: any): MediaPost {
+  if (!item) return item;
+  return {
+    id: String(item.id),
+    categoryId: String(item.category_id || item.categoryId || ''),
+    categoryName: item.category?.name || item.categoryName,
+    categorySlug: item.category?.slug || item.categorySlug,
+    title: item.title || '',
+    slug: item.slug || '',
+    subTitle: item.sub_title || item.subTitle || '',
+    description: item.description || '',
+    content: item.content || '',
+    mediaType: item.media_type || item.mediaType || 'audio',
+    mediaUrl: item.media_url || item.mediaUrl || '',
+    thumbnailUrl: item.thumbnail_url || item.thumbnailUrl || '',
+    duration: item.duration || '04:00',
+    isFeatured: Boolean(item.is_featured ?? item.isFeatured ?? false),
+    viewCount: item.view_count ?? item.viewCount ?? 0,
+    playCount: item.play_count ?? item.playCount ?? 0,
+    status: item.status || 'published',
+    publishedAt: item.published_at || item.publishedAt,
+  };
+}
 
 function normalizeTimelineEntry(item: any): TimelineEntry {
   if (!item) return item;
@@ -18,6 +54,17 @@ function normalizeTimelineEntry(item: any): TimelineEntry {
     isPublished: item.isPublished ?? item.is_published ?? item.is_active ?? true,
     created_at: item.created_at,
     updated_at: item.updated_at,
+  };
+}
+
+function normalizeMenuItem(item: any): HeaderNavItem {
+  if (!item) return item;
+  return {
+    id: String(item.id),
+    label: item.label || '',
+    viewType: item.view_type || item.viewType || '/',
+    icon: item.icon || 'Home',
+    customIconUrl: item.custom_icon_url || item.customIconUrl,
   };
 }
 
@@ -309,6 +356,20 @@ export const apiService = {
     return fetchDeduplicated(key, async () => {
       const res = await apiClient.get('/timeline-entries', { params: { type } });
       return (res.data.data || []).map(normalizeTimelineEntry);
+    });
+  },
+
+  async getMenuItems(): Promise<HeaderNavItem[]> {
+    return fetchDeduplicated('getMenuItems', async () => {
+      try {
+        const res = await apiClient.get('/menu-items');
+        if (res.data && res.data.data && Array.isArray(res.data.data)) {
+          return res.data.data.map(normalizeMenuItem);
+        }
+      } catch (err) {
+        console.warn('API /menu-items fetch failed:', err);
+      }
+      return [];
     });
   },
 
@@ -723,6 +784,144 @@ export const apiService = {
 
   async uploadImage(file: File): Promise<string> {
     return this.uploadFile(file);
+  },
+
+  // Menu Items API (Admin CRUD)
+  async adminGetMenuItems(payload?: any): Promise<HeaderNavItem[]> {
+    const res = await apiClient.post('/admin/menu-items/GetData', payload || {});
+    return (res.data.data || []).map(normalizeMenuItem);
+  },
+
+  async adminCreateMenuItem(item: Partial<HeaderNavItem>): Promise<HeaderNavItem> {
+    const res = await apiClient.post('/admin/menu-items', {
+      label: item.label,
+      view_type: item.viewType || '/',
+      icon: item.icon || 'Home',
+      custom_icon_url: item.customIconUrl,
+    });
+    clearApiCache();
+    return normalizeMenuItem(res.data.data);
+  },
+
+  async adminUpdateMenuItem(id: string, item: Partial<HeaderNavItem>): Promise<HeaderNavItem> {
+    const res = await apiClient.post(`/admin/menu-items/${id}/update`, {
+      label: item.label,
+      view_type: item.viewType,
+      icon: item.icon,
+      custom_icon_url: item.customIconUrl,
+    });
+    clearApiCache();
+    return normalizeMenuItem(res.data.data);
+  },
+
+  async adminDeleteMenuItem(id: string): Promise<void> {
+    await apiClient.post(`/admin/menu-items/${id}/delete`);
+    clearApiCache();
+  },
+
+  async adminReorderMenuItems(orderedIds: string[]): Promise<void> {
+    await apiClient.post('/admin/menu-items/reorder', { ordered_ids: orderedIds });
+    clearApiCache();
+  },
+
+  // Media / Nghe Quan Ho API
+  async getMediaCategories(): Promise<MediaCategory[]> {
+    return fetchDeduplicated('media_categories', async () => {
+      try {
+        const res = await apiClient.get('/media/categories');
+        const items = res.data.data || res.data || [];
+        return Array.isArray(items) ? items.map(normalizeMediaCategory) : [];
+      } catch (err) {
+        console.error('getMediaCategories error:', err);
+        return [];
+      }
+    });
+  },
+
+  async getMediaPosts(categorySlug?: string, isFeatured?: boolean, limit?: number): Promise<MediaPost[]> {
+    const key = `media_posts_${categorySlug || 'all'}_${isFeatured ?? 'all'}_${limit || 20}`;
+    return fetchDeduplicated(key, async () => {
+      try {
+        const res = await apiClient.get('/media/posts', {
+          params: { category_slug: categorySlug, is_featured: isFeatured, limit }
+        });
+        const items = res.data.data || res.data || [];
+        return Array.isArray(items) ? items.map(normalizeMediaPost) : [];
+      } catch (err) {
+        console.error('getMediaPosts error:', err);
+        return [];
+      }
+    });
+  },
+
+  async getFeaturedTodayMedia(): Promise<MediaPost | null> {
+    return fetchDeduplicated('featured_today_media', async () => {
+      try {
+        const res = await apiClient.get('/media/featured-today');
+        const item = res.data.data;
+        return item ? normalizeMediaPost(item) : null;
+      } catch (err) {
+        console.error('getFeaturedTodayMedia error:', err);
+        return null;
+      }
+    });
+  },
+
+  async incrementMediaPlay(id: string | number): Promise<void> {
+    try {
+      await apiClient.post(`/media/posts/${id}/increment-play`);
+    } catch (err) {
+      console.warn('incrementMediaPlay failed:', err);
+    }
+  },
+
+  // Media / Nghe Quan Ho Admin CRUD
+  async adminGetMediaCategories(): Promise<MediaCategory[]> {
+    const res = await apiClient.post('/admin/media/categories/GetData');
+    const items = res.data.data || [];
+    return Array.isArray(items) ? items.map(normalizeMediaCategory) : [];
+  },
+
+  async adminCreateMediaCategory(cat: Partial<MediaCategory>): Promise<MediaCategory> {
+    const res = await apiClient.post('/admin/media/categories', cat);
+    clearApiCache();
+    return normalizeMediaCategory(res.data.data);
+  },
+
+  async adminUpdateMediaCategory(id: string | number, cat: Partial<MediaCategory>): Promise<MediaCategory> {
+    const res = await apiClient.post(`/admin/media/categories/${id}/update`, cat);
+    clearApiCache();
+    return normalizeMediaCategory(res.data.data);
+  },
+
+  async adminDeleteMediaCategory(id: string | number) {
+    const res = await apiClient.post(`/admin/media/categories/${id}/delete`);
+    clearApiCache();
+    return res.data;
+  },
+
+  async adminGetMediaPosts(params?: Record<string, any>): Promise<MediaPost[]> {
+    const res = await apiClient.post('/admin/media/posts/GetData', params || {});
+    const items = res.data.data || [];
+    return Array.isArray(items) ? items.map(normalizeMediaPost) : [];
+  },
+
+  async adminCreateMediaPost(post: Partial<MediaPost>): Promise<MediaPost> {
+    const res = await apiClient.post('/admin/media/posts', post);
+    clearApiCache();
+    return normalizeMediaPost(res.data.data);
+  },
+
+  async adminUpdateMediaPost(id: string | number, post: Partial<MediaPost>): Promise<MediaPost> {
+    const res = await apiClient.post(`/admin/media/posts/${id}/update`, post);
+    clearApiCache();
+    return normalizeMediaPost(res.data.data);
+  },
+
+  async adminDeleteMediaPost(id: string | number) {
+    const res = await apiClient.post(`/admin/media/posts/${id}/delete`);
+    clearApiCache();
+    return res.data;
   },
 };
 

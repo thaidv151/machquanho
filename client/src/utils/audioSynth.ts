@@ -1,6 +1,7 @@
 /**
- * Web Audio API Synthesizer for Vietnamese Pentatonic Folk Melodies
- * (Quan họ Bắc Ninh traditional scales: C D F G A / Hò Xự Xang Xê Cống)
+ * Web Audio API Synthesizer & Real HTML5 Audio Player
+ * Supports playing uploaded real audio files (MP3, WAV, M4A, AAC)
+ * with automatic fallback to pentatonic folk melodies (Quan họ Bắc Ninh scales).
  */
 
 interface Note {
@@ -69,9 +70,11 @@ const BEO_DAT_MAY_TROI: Note[] = [
 
 class AudioController {
   private ctx: AudioContext | null = null;
+  private audioElement: HTMLAudioElement | null = null;
   private isPlaying = false;
   private timer: number | null = null;
   private currentTrackName = '';
+  private currentMediaUrl: string | null = null;
   private onStateChange: ((playing: boolean, trackName: string, progress: number) => void) | null = null;
   private progressInterval: number | null = null;
   private trackStartTime = 0;
@@ -91,13 +94,62 @@ class AudioController {
     this.onStateChange = cb;
   }
 
-  public playTrack(trackName: string) {
+  public playTrack(trackName: string, mediaUrl?: string) {
     this.stop();
-    this.initCtx();
-    if (!this.ctx) return;
 
     this.isPlaying = true;
     this.currentTrackName = trackName;
+    this.currentMediaUrl = mediaUrl || null;
+
+    // Check if mediaUrl is a real audio file (HTTP/HTTPS URL or Data URL)
+    if (mediaUrl && (mediaUrl.startsWith('http://') || mediaUrl.startsWith('https://') || mediaUrl.startsWith('/uploads/') || mediaUrl.startsWith('data:audio/'))) {
+      try {
+        this.audioElement = new Audio(mediaUrl);
+        
+        this.audioElement.ontimeupdate = () => {
+          if (!this.audioElement || !this.isPlaying) return;
+          const duration = this.audioElement.duration || 1;
+          const percent = Math.min(100, (this.audioElement.currentTime / duration) * 100);
+          if (this.onStateChange) {
+            this.onStateChange(true, this.currentTrackName, percent);
+          }
+        };
+
+        this.audioElement.onended = () => {
+          this.stop();
+        };
+
+        this.audioElement.onerror = (err) => {
+          console.warn('Real audio file playback failed, falling back to synth melody:', err);
+          this.audioElement = null;
+          this.playSynthMelody(trackName);
+        };
+
+        const playPromise = this.audioElement.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((err) => {
+            console.warn('Audio play request rejected or blocked:', err);
+            // Fallback to synth if autoplay fails
+            this.playSynthMelody(trackName);
+          });
+        }
+
+        if (this.onStateChange) {
+          this.onStateChange(true, trackName, 0);
+        }
+        return;
+      } catch (err) {
+        console.warn('HTML5 Audio initialization failed, fallback to synth:', err);
+      }
+    }
+
+    // Fallback: Play synthesized melody using Web Audio API
+    this.playSynthMelody(trackName);
+  }
+
+  private playSynthMelody(trackName: string) {
+    this.initCtx();
+    if (!this.ctx) return;
 
     let melody = CAY_TRUC_XINH;
     if (trackName.includes('Khách') || trackName.includes('Hội Lim')) {
@@ -132,11 +184,10 @@ class AudioController {
       }
     }, 100);
 
-    // Auto loop / complete
+    // Auto loop
     this.timer = window.setTimeout(() => {
       if (this.isPlaying) {
-        // loop softly
-        this.playTrack(trackName);
+        this.playSynthMelody(trackName);
       }
     }, totalDuration * 1000 + 400);
   }
@@ -144,14 +195,11 @@ class AudioController {
   private playPluckedString(freq: number, startTime: number, duration: number) {
     if (!this.ctx) return;
 
-    // Harmonic layer 1: Fundamental Sine / Triangle (Warm bamboo flute / Dan bau)
     const osc1 = this.ctx.createOscillator();
     const gain1 = this.ctx.createGain();
 
     osc1.type = 'triangle';
     osc1.frequency.setValueAtTime(freq, startTime);
-
-    // Subtle pitch vibrato/slide for traditional singing effect
     osc1.frequency.exponentialRampToValueAtTime(freq * 1.008, startTime + 0.1);
     osc1.frequency.exponentialRampToValueAtTime(freq, startTime + 0.25);
 
@@ -159,7 +207,6 @@ class AudioController {
     gain1.gain.linearRampToValueAtTime(0.3, startTime + 0.04);
     gain1.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
-    // Harmonic layer 2: Dan Tranh pluck (high harmonics with quick decay)
     const osc2 = this.ctx.createOscillator();
     const gain2 = this.ctx.createGain();
     osc2.type = 'sine';
@@ -167,7 +214,6 @@ class AudioController {
     gain2.gain.setValueAtTime(0.15, startTime);
     gain2.gain.exponentialRampToValueAtTime(0.0001, startTime + duration * 0.7);
 
-    // Filter to warm up sound
     const filter = this.ctx.createBiquadFilter();
     filter.type = 'lowpass';
     filter.frequency.setValueAtTime(1600, startTime);
@@ -186,6 +232,22 @@ class AudioController {
 
   public stop() {
     this.isPlaying = false;
+    
+    // Stop real HTML5 audio
+    if (this.audioElement) {
+      try {
+        this.audioElement.pause();
+        this.audioElement.currentTime = 0;
+        this.audioElement.ontimeupdate = null;
+        this.audioElement.onended = null;
+        this.audioElement.onerror = null;
+      } catch {
+        // ignore
+      }
+      this.audioElement = null;
+    }
+
+    // Stop synth timers
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
@@ -199,18 +261,19 @@ class AudioController {
     }
   }
 
-  public toggle(trackName: string) {
+  public toggle(trackName: string, mediaUrl?: string) {
     if (this.isPlaying && this.currentTrackName === trackName) {
       this.stop();
     } else {
-      this.playTrack(trackName);
+      this.playTrack(trackName, mediaUrl);
     }
   }
 
   public getStatus() {
     return {
       isPlaying: this.isPlaying,
-      currentTrack: this.currentTrackName
+      currentTrack: this.currentTrackName,
+      mediaUrl: this.currentMediaUrl,
     };
   }
 }

@@ -64,24 +64,9 @@ export const MapSection: React.FC<MapSectionProps> = ({
     return () => { isMounted = false; };
   }, [initialConfig, initialLocations]);
 
-  // Filter locations by selected category & active status
-  const filteredLocations = locations.filter((loc) => {
-    if (loc.status === false) return false;
-    if (selectedCategory === 'Tất cả') return true;
-    return loc.category === selectedCategory;
-  });
-
-  // If on HomePage and no active map data exists in DB (or loading), hide section completely
-  if (!standalonePage) {
-    if (loading) return null;
-    if (locations.filter(l => l.status !== false).length === 0) {
-      return null;
-    }
-  }
-
   // Initialize Leaflet Map
   useEffect(() => {
-    if (!mapContainerRef.current) return;
+    if (loading || !mapContainerRef.current) return;
 
     // Remove existing map if any
     if (leafletMapRef.current) {
@@ -89,22 +74,26 @@ export const MapSection: React.FC<MapSectionProps> = ({
       leafletMapRef.current = null;
     }
 
-    const map = L.map(mapContainerRef.current, {
-      center: [config.defaultLat, config.defaultLng],
-      zoom: config.defaultZoom,
-      scrollWheelZoom: true,
-      zoomControl: true,
-    });
+    try {
+      const map = L.map(mapContainerRef.current, {
+        center: [config.defaultLat, config.defaultLng],
+        zoom: config.defaultZoom,
+        scrollWheelZoom: true,
+        zoomControl: true,
+      });
 
-    // CartoDB Positron / OpenStreetMap Tile Layer with clean heritage style
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap & Mạch Quan Họ',
-    }).addTo(map);
+      // CartoDB Positron / OpenStreetMap Tile Layer with clean heritage style
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap & Mạch Quan Họ',
+      }).addTo(map);
 
-    const layerGroup = L.layerGroup().addTo(map);
-    leafletMapRef.current = map;
-    markersLayerRef.current = layerGroup;
+      const layerGroup = L.layerGroup().addTo(map);
+      leafletMapRef.current = map;
+      markersLayerRef.current = layerGroup;
+    } catch (err) {
+      console.warn('Leaflet map init error:', err);
+    }
 
     // Attach global click event handler for dynamic "Xem chi tiết" buttons inside Leaflet Popups
     const handlePopupClick = (e: MouseEvent) => {
@@ -130,7 +119,7 @@ export const MapSection: React.FC<MapSectionProps> = ({
         leafletMapRef.current = null;
       }
     };
-  }, [config]);
+  }, [config, loading]);
 
   const dynamicCategories = [
     { id: 'Tất cả', label: 'Tất cả điểm di sản', icon: '📍', color: '#8B263E' },
@@ -143,6 +132,13 @@ export const MapSection: React.FC<MapSectionProps> = ({
         }))
       : []),
   ];
+
+  // Filter locations by selected category & active status
+  const filteredLocations = locations.filter((loc) => {
+    if (loc.status === false) return false;
+    if (selectedCategory === 'Tất cả') return true;
+    return loc.category === selectedCategory;
+  });
 
   // Update Markers when filteredLocations change
   useEffect(() => {
@@ -262,6 +258,14 @@ export const MapSection: React.FC<MapSectionProps> = ({
       markersLayerRef.current?.addLayer(marker);
     });
   }, [filteredLocations]);
+
+  // If on HomePage and no active map data exists in DB (or loading), hide section completely
+  if (!standalonePage) {
+    if (loading) return null;
+    if (locations.filter(l => l.status !== false).length === 0) {
+      return null;
+    }
+  }
 
   return (
     <section className={`w-full bg-[#FAF8F5] ${standalonePage ? 'py-8' : 'py-16'} border-t border-[#E8DCC4]`}>
