@@ -23,4 +23,14 @@ class SiteConfigService extends BaseService
     {
         return $this->siteConfigRepository->updateSiteConfig($validatedData);
     }
+
+    public function getMapConfig(): array
+    {
+        return $this->siteConfigRepository->getMapConfig();
+    }
+
+    public function updateMapConfig(array $validatedData): array
+    {
+        return $this->siteConfigRepository->updateMapConfig($validatedData);
+    }
 }

@@ -59,13 +59,20 @@ class TimelineEntryController extends Controller
         try {
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
-                'period' => 'required|string|max:255',
+                'period' => 'nullable|string|max:255',
+                'time_period' => 'nullable|string|max:255',
                 'description' => 'required|string',
                 'image' => 'nullable|string',
+                'image_url' => 'nullable|string',
                 'icon' => 'nullable|string',
-                'type' => 'required|in:heritage,policy',
+                'icon_type' => 'nullable|string',
+                'type' => 'nullable|in:heritage,policy',
+                'tab_type' => 'nullable|in:heritage,policy',
                 'sort_order' => 'nullable|integer',
+                'sortOrder' => 'nullable|integer',
                 'is_published' => 'nullable|boolean',
+                'is_active' => 'nullable|boolean',
+                'isPublished' => 'nullable|boolean',
             ]);
 
             $entry = $this->timelineService->createEntry($validated);
@@ -95,13 +102,20 @@ class TimelineEntryController extends Controller
         try {
             $validated = $request->validate([
                 'title' => 'sometimes|required|string|max:255',
-                'period' => 'sometimes|required|string|max:255',
+                'period' => 'nullable|string|max:255',
+                'time_period' => 'nullable|string|max:255',
                 'description' => 'sometimes|required|string',
                 'image' => 'nullable|string',
+                'image_url' => 'nullable|string',
                 'icon' => 'nullable|string',
-                'type' => 'sometimes|required|in:heritage,policy',
+                'icon_type' => 'nullable|string',
+                'type' => 'nullable|in:heritage,policy',
+                'tab_type' => 'nullable|in:heritage,policy',
                 'sort_order' => 'nullable|integer',
+                'sortOrder' => 'nullable|integer',
                 'is_published' => 'nullable|boolean',
+                'is_active' => 'nullable|boolean',
+                'isPublished' => 'nullable|boolean',
             ]);
 
             $entry = $this->timelineService->updateEntry($id, $validated);

@@ -74,7 +74,7 @@ export const Toast: React.FC<ToastProps> = ({
   const IconComponent = style.Icon;
 
   return (
-    <div className="fixed top-6 right-6 z-50 animate-slideDown max-w-md w-full px-4 sm:px-0">
+    <div className="fixed top-6 right-6 z-[99999] animate-slideDown max-w-md w-full px-4 sm:px-0">
       <div className={`${style.containerBg} text-white px-4 py-3.5 rounded-2xl shadow-2xl flex items-center space-x-3.5 border-2 ${style.borderColor} backdrop-blur-md transition-all`}>
         <div className={`p-2 rounded-xl ${style.badgeBg} border shrink-0`}>
           <IconComponent className={`w-5 h-5 ${style.textColor}`} />

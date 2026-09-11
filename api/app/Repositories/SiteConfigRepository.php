@@ -78,4 +78,34 @@ class SiteConfigRepository extends BaseRepository
 
         return $responseData;
     }
+
+    public function getMapConfig(): array
+    {
+        $config = $this->model->newQuery()->first();
+        if ($config && !empty($config->map_config)) {
+            $data = is_array($config->map_config) ? $config->map_config : (json_decode($config->map_config, true) ?? []);
+            if (!isset($data['categories']) || !is_array($data['categories'])) {
+                $data['categories'] = [];
+            }
+            return $data;
+        }
+
+        return [
+            'title' => 'BẢN ĐỒ MẠCH QUAN HỌ',
+            'subtitle' => 'Khám phá các điểm di sản, làng Quan họ và không gian văn hóa',
+            'height' => '600px',
+            'width' => '100%',
+            'defaultLat' => 21.1861,
+            'defaultLng' => 106.0763,
+            'defaultZoom' => 12,
+            'categories' => [],
+        ];
+    }
+
+    public function updateMapConfig(array $validated): array
+    {
+        $config = $this->model->newQuery()->firstOrCreate(['id' => 1]);
+        $config->update(['map_config' => $validated]);
+        return $validated;
+    }
 }

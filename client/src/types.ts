@@ -120,7 +120,7 @@ export interface CategoryInfo {
 export interface HeaderNavItem {
   id: string;
   label: string;
-  viewType: 'home' | 'news' | 'research-diary' | 'about' | 'timeline';
+  viewType: 'home' | 'news' | 'research-diary' | 'about' | 'timeline' | 'map';
   icon?: string; // Predefined icon key e.g. 'Home' | 'Newspaper' | 'BookOpen' | 'Users' | 'Sparkles' | 'Music' | 'Globe' | 'Clock'
   customIconUrl?: string; // Custom uploaded image URL
 }
@@ -286,6 +286,41 @@ export interface SiteConfig {
   };
 }
 
+export interface MapLocation {
+  id: number | string;
+  title: string;
+  category: string; // 'Làng Quan họ' | 'Địa điểm di sản' | 'Không gian diễn xướng' | 'Nhà hát' | string
+  address?: string;
+  latitude: number;
+  longitude: number;
+  image_url?: string;
+  summary?: string;
+  content?: string; // Rich Text HTML content
+  status?: boolean;
+  sort_order?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface MapCategoryConfig {
+  id?: string;
+  name: string;
+  icon?: string;
+  color?: string;
+  sort_order: number;
+}
+
+export interface MapConfig {
+  title: string;
+  subtitle: string;
+  height: string;
+  width: string;
+  defaultLat: number;
+  defaultLng: number;
+  defaultZoom: number;
+  categories?: MapCategoryConfig[];
+}
+
 export type ViewState = 
   | { type: 'home' }
   | { type: 'news'; category?: string; searchQuery?: string }
@@ -293,5 +328,6 @@ export type ViewState =
   | { type: 'research-diary'; selectedId?: string }
   | { type: 'about' }
   | { type: 'timeline' }
+  | { type: 'map'; locationId?: string }
   | { type: 'explore-detail'; topicId: string }
-  | { type: 'admin'; section: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'timeline' | 'footer' | 'seo' | 'scripts' };
+  | { type: 'admin'; section: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'timeline' | 'map' | 'footer' | 'seo' | 'scripts' };

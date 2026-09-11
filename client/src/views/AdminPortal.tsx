@@ -21,6 +21,7 @@ import { AdminScriptsTab } from './admin/tabs/AdminScriptsTab';
 import { AdminExploreTab } from './admin/tabs/AdminExploreTab';
 import { AdminTeamTab } from './admin/tabs/AdminTeamTab';
 import { AdminTimelineTab } from './admin/tabs/AdminTimelineTab';
+import { AdminMapTab } from './admin/tabs/AdminMapTab';
 import { HeaderNavItem, ResearchEntry, ExploreTopic, SiteFooterConfig, SiteSeoConfig, TeamMember } from '../types';
 
 import { UserFormModal } from './admin/modals/UserFormModal';
@@ -30,7 +31,7 @@ import { AdminResearchEditorPage } from './admin/pages/AdminResearchEditorPage';
 import { slugify } from '../utils/slugify';
 
 interface AdminPortalProps {
-  section: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'timeline' | 'footer' | 'seo' | 'scripts';
+  section: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'timeline' | 'map' | 'footer' | 'seo' | 'scripts';
   articles: Article[];
   users: AdminUser[];
   categories: CategoryInfo[];
@@ -66,7 +67,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   onLogout,
   onNavigate,
 }) => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'timeline' | 'footer' | 'seo' | 'scripts'>(section || 'dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'timeline' | 'map' | 'footer' | 'seo' | 'scripts'>(section || 'dashboard');
   const [toastState, setToastState] = useState<{ message: string; type: ToastType } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -781,6 +782,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               setSiteInfoForm={setSiteInfoForm}
               onSubmit={handleSaveBannerAndSiteConfig}
             />
+          )}
+
+          {activeTab === 'map' && (
+            <AdminMapTab />
           )}
 
           {activeTab === 'header' && (

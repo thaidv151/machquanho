@@ -7,6 +7,7 @@ import { HomeTeamSection } from '../components/HomeTeamSection';
 import { Newspaper, Calendar, ArrowRight, Eye, Sparkles, Clock, Music } from 'lucide-react';
 import { audioPlayer } from '../utils/audioSynth';
 import { getOptimizedImageUrl } from '../utils/imageOptimizer';
+import { MapSection } from '../components/MapSection';
 import { apiService } from '../services/apiService';
 
 interface HomePageProps {
@@ -242,7 +243,10 @@ export const HomePage: React.FC<HomePageProps> = ({
         onSelectTopic={onSelectTopic}
       />
 
-      {/* 4. Về nhóm nghiên cứu */}
+      {/* 4. Bản đồ di sản Mạch Quan Họ */}
+      <MapSection />
+
+      {/* 5. Về nhóm nghiên cứu */}
       <HomeTeamSection />
 
     </div>

@@ -17,6 +17,8 @@ import { HomePage } from './views/HomePage';
 import { audioPlayer } from './utils/audioSynth';
 import { apiService } from './services/apiService';
 
+import { MapSection } from './components/MapSection';
+
 // Lazy loading views for bundle optimization & code splitting
 const NewsListPage = React.lazy(() => import('./views/NewsListPage').then(m => ({ default: m.NewsListPage })));
 const ArticleDetailPage = React.lazy(() => import('./views/ArticleDetailPage').then(m => ({ default: m.ArticleDetailPage })));
@@ -47,7 +49,7 @@ function getViewFromPath(path: string): ViewState {
   if (cleanPath.startsWith('/admin')) {
     const parts = cleanPath.split('/');
     const sec = parts[2] || 'dashboard';
-    const validSections = ['dashboard', 'articles', 'users', 'categories', 'banner', 'header', 'menus', 'research', 'explore', 'team', 'timeline', 'footer', 'seo', 'scripts'];
+    const validSections = ['dashboard', 'articles', 'users', 'categories', 'banner', 'header', 'menus', 'research', 'explore', 'team', 'timeline', 'map', 'footer', 'seo', 'scripts'];
     const section = (validSections.includes(sec) ? sec : 'dashboard') as any;
     return { type: 'admin', section };
   }
@@ -66,6 +68,9 @@ function getViewFromPath(path: string): ViewState {
   }
   if (cleanPath === '/timeline' || cleanPath === '/dong-chay-quan-ho') {
     return { type: 'timeline' };
+  }
+  if (cleanPath === '/map' || cleanPath === '/ban-do-di-san') {
+    return { type: 'map' };
   }
   if (cleanPath === '/about') {
     return { type: 'about' };
@@ -91,6 +96,8 @@ function getPathFromView(view: ViewState): string {
       return view.selectedId ? `/research-diary?id=${encodeURIComponent(view.selectedId)}` : '/research-diary';
     case 'timeline':
       return '/timeline';
+    case 'map':
+      return '/map';
     case 'about':
       return '/about';
     default:
@@ -403,6 +410,10 @@ export default function App() {
             <TimelinePage
               onNavigate={handleNavigate}
             />
+          )}
+
+          {currentView.type === 'map' && (
+            <MapSection standalonePage={true} />
           )}
 
           {currentView.type === 'research-diary' && (

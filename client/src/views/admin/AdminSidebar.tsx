@@ -1,14 +1,14 @@
 import React from 'react';
-import { LayoutDashboard, FileText, Users, FolderKanban, Settings, ArrowLeft, Compass, Menu, BookOpen, Globe, Search, Code, Layers, UserCheck, Clock } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, FolderKanban, Settings, ArrowLeft, Compass, Menu, BookOpen, Globe, Search, Code, Layers, UserCheck, Clock, MapPin } from 'lucide-react';
 import { ViewState } from '../../types';
 
 interface AdminSidebarProps {
-  activeTab: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'timeline' | 'footer' | 'seo' | 'scripts';
+  activeTab: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'timeline' | 'map' | 'footer' | 'seo' | 'scripts';
   articlesCount: number;
   usersCount: number;
   categoriesCount: number;
   teamCount?: number;
-  onSelectTab: (tab: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'timeline' | 'footer' | 'seo' | 'scripts') => void;
+  onSelectTab: (tab: 'dashboard' | 'articles' | 'users' | 'categories' | 'banner' | 'header' | 'menus' | 'research' | 'explore' | 'team' | 'timeline' | 'map' | 'footer' | 'seo' | 'scripts') => void;
   onNavigate: (view: ViewState) => void;
 }
 
@@ -38,6 +38,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       groupTitle: 'GIAO DIỆN & CẤU HÌNH',
       items: [
         { id: 'banner' as const, label: 'Cấu hình Banner trang chủ', icon: Settings },
+        { id: 'map' as const, label: 'Cấu hình & Bản đồ Di sản', icon: MapPin },
         { id: 'header' as const, label: 'Cấu hình Header & Logo', icon: Compass },
         { id: 'menus' as const, label: 'Quản lý Menu Navigation', icon: Menu },
         { id: 'footer' as const, label: 'Cấu hình Chân trang (Footer)', icon: Globe },

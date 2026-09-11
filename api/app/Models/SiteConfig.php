@@ -23,6 +23,7 @@ class SiteConfig extends Model
         'header_config',
         'footer',
         'seo',
+        'map_config',
     ];
 
     protected $casts = [
@@ -31,5 +32,6 @@ class SiteConfig extends Model
         'header_config' => 'array',
         'footer' => 'array',
         'seo' => 'array',
+        'map_config' => 'array',
     ];
 }

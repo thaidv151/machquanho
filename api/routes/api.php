@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\ArtisanController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ExploreTopicController;
+use App\Http\Controllers\Api\MapLocationController;
 use App\Http\Controllers\Api\ResearchEntryController;
 use App\Http\Controllers\Api\SiteConfigController;
 use App\Http\Controllers\Api\TimelineEntryController;
@@ -26,6 +27,9 @@ Route::get('/explore-topics', [ExploreTopicController::class, 'index']);
 Route::get('/team-members', [TeamMemberController::class, 'index']);
 Route::get('/timeline-entries', [TimelineEntryController::class, 'index']);
 Route::get('/site-config', [SiteConfigController::class, 'index']);
+Route::get('/map-locations', [MapLocationController::class, 'index']);
+Route::get('/map-locations/{id}', [MapLocationController::class, 'show']);
+Route::get('/map-config', [MapLocationController::class, 'getMapConfig']);
 
 /*
 |--------------------------------------------------------------------------
@@ -34,7 +38,7 @@ Route::get('/site-config', [SiteConfigController::class, 'index']);
 */
 Route::group(['prefix' => 'auth'], function () {
     Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->name('login');
 
     Route::middleware('auth:api')->group(function () {
         Route::get('/me', [AuthController::class, 'me']);
@@ -100,6 +104,13 @@ Route::middleware('auth:api')->prefix('admin')->group(function () {
     Route::post('/timeline-entries', [TimelineEntryController::class, 'store']);
     Route::post('/timeline-entries/{id}/update', [TimelineEntryController::class, 'update']);
     Route::post('/timeline-entries/{id}/delete', [TimelineEntryController::class, 'destroy']);
+
+    // Map Locations & Map Config Management
+    Route::post('/map-locations/GetData', [MapLocationController::class, 'adminGetData']);
+    Route::post('/map-locations', [MapLocationController::class, 'store']);
+    Route::post('/map-locations/{id}/update', [MapLocationController::class, 'update']);
+    Route::post('/map-locations/{id}/delete', [MapLocationController::class, 'destroy']);
+    Route::post('/map-config', [MapLocationController::class, 'updateMapConfig']);
 
     // Site Config Management
     Route::post('/site-config', [SiteConfigController::class, 'update']);

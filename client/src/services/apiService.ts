@@ -1,5 +1,5 @@
 import apiClient from './apiClient';
-import { Article, CategoryInfo, ResearchEntry, Artisan, ExploreTopic, SiteConfig, AdminUser, TeamMember, TimelineEntry } from '../types';
+import { Article, CategoryInfo, ResearchEntry, Artisan, ExploreTopic, SiteConfig, AdminUser, TeamMember, TimelineEntry, MapLocation, MapConfig } from '../types';
 import { DEFAULT_SITE_CONFIG } from '../data/mockData';
 
 // Helper normalizers to bridge Laravel snake_case DB fields with Frontend TS interfaces
@@ -7,15 +7,15 @@ import { DEFAULT_SITE_CONFIG } from '../data/mockData';
 function normalizeTimelineEntry(item: any): TimelineEntry {
   if (!item) return item;
   return {
-    id: item.id,
+    id: String(item.id),
     title: item.title || '',
-    period: item.period || '',
+    period: item.period || item.time_period || '',
     description: item.description || '',
-    image: item.image || '',
-    icon: item.icon || 'landmark',
-    type: item.type === 'policy' ? 'policy' : 'heritage',
-    sortOrder: item.sort_order ?? item.sortOrder ?? 0,
-    isPublished: item.is_published !== undefined ? Boolean(item.is_published) : (item.isPublished !== undefined ? Boolean(item.isPublished) : true),
+    image: item.image || item.image_url || '',
+    icon: item.icon || item.icon_type || 'landmark',
+    type: (item.type || item.tab_type || 'heritage') === 'policy' ? 'policy' : 'heritage',
+    sortOrder: item.sortOrder ?? item.sort_order ?? 0,
+    isPublished: item.isPublished ?? item.is_published ?? item.is_active ?? true,
     created_at: item.created_at,
     updated_at: item.updated_at,
   };
@@ -590,7 +590,111 @@ export const apiService = {
     return res.data;
   },
 
-  // 8. File Upload (Images, Videos, Audio)
+  // 8. Map Locations & Map Config API
+  async getMapLocations(category?: string): Promise<MapLocation[]> {
+    try {
+      const res = await apiClient.get('/map-locations', { params: { category } });
+      const items = res.data.data || res.data;
+      return Array.isArray(items) ? items.map(normalizeMapLocation) : [];
+    } catch (err) {
+      console.error('getMapLocations error:', err);
+      return [];
+    }
+  },
+
+  async adminGetMapLocations(params: any): Promise<{ data: MapLocation[]; total: number }> {
+    try {
+      const res = await apiClient.post('/admin/map-locations/GetData', params);
+      const items = res.data.data || [];
+      return {
+        data: Array.isArray(items) ? items.map(normalizeMapLocation) : [],
+        total: res.data.total || items.length,
+      };
+    } catch (err) {
+      console.error('adminGetMapLocations error:', err);
+      return { data: [], total: 0 };
+    }
+  },
+
+  async createMapLocation(data: Partial<MapLocation>): Promise<MapLocation> {
+    const res = await apiClient.post('/admin/map-locations', data);
+    clearApiCache();
+    return normalizeMapLocation(res.data.data);
+  },
+
+  async updateMapLocation(id: number | string, data: Partial<MapLocation>): Promise<MapLocation> {
+    const res = await apiClient.post(`/admin/map-locations/${id}/update`, data);
+    clearApiCache();
+    return normalizeMapLocation(res.data.data);
+  },
+
+  async deleteMapLocation(id: number | string) {
+    const res = await apiClient.post(`/admin/map-locations/${id}/delete`);
+    clearApiCache();
+    return res.data;
+  },
+
+  async getMapConfig(): Promise<MapConfig> {
+    try {
+      const res = await apiClient.get('/map-config');
+      const data = res.data.data || res.data;
+      const rawCategories = Array.isArray(data.categories) ? data.categories : [];
+      
+      const normalizedCategories = rawCategories.map((c: any, index: number) => ({
+        id: c.id || `cat-${index + 1}`,
+        name: c.name || '',
+        icon: c.icon || '📍',
+        color: c.color || '#8B263E',
+        sort_order: Number(c.sort_order ?? c.sortOrder ?? index + 1),
+      })).sort((a: any, b: any) => a.sort_order - b.sort_order);
+
+      return {
+        title: data.title || 'BẢN ĐỒ MẠCH QUAN HỌ',
+        subtitle: data.subtitle || 'Khám phá các điểm di sản, làng Quan họ và không gian văn hóa',
+        height: data.height || '600px',
+        width: data.width || '100%',
+        defaultLat: Number(data.defaultLat || 21.1861),
+        defaultLng: Number(data.defaultLng || 106.0763),
+        defaultZoom: Number(data.defaultZoom || 12),
+        categories: normalizedCategories,
+      };
+    } catch (err) {
+      return {
+        title: 'BẢN ĐỒ MẠCH QUAN HỌ',
+        subtitle: 'Khám phá các điểm di sản, làng Quan họ và không gian văn hóa',
+        height: '600px',
+        width: '100%',
+        defaultLat: 21.1861,
+        defaultLng: 106.0763,
+        defaultZoom: 12,
+        categories: [],
+      };
+    }
+  },
+
+  async updateMapConfig(config: MapConfig): Promise<MapConfig> {
+    const payload = {
+      title: config.title || 'BẢN ĐỒ MẠCH QUAN HỌ',
+      subtitle: config.subtitle || 'Khám phá các điểm di sản, làng Quan họ và không gian văn hóa',
+      height: config.height || '600px',
+      width: config.width || '100%',
+      defaultLat: Number(config.defaultLat || 21.1861),
+      defaultLng: Number(config.defaultLng || 106.0763),
+      defaultZoom: Number(config.defaultZoom || 12),
+      categories: (config.categories || []).map((c, i) => ({
+        id: c.id || `cat-${i + 1}`,
+        name: c.name || 'Danh mục',
+        icon: c.icon || '📍',
+        color: c.color || '#8B263E',
+        sort_order: i + 1,
+      })),
+    };
+    const res = await apiClient.post('/admin/map-config', payload);
+    clearApiCache();
+    return res.data.data;
+  },
+
+  // 9. File Upload (Images, Videos, Audio)
   async uploadFile(file: File): Promise<string> {
     try {
       const formData = new FormData();
@@ -621,5 +725,24 @@ export const apiService = {
     return this.uploadFile(file);
   },
 };
+
+function normalizeMapLocation(item: any): MapLocation {
+  if (!item) return item;
+  return {
+    id: item.id,
+    title: item.title || '',
+    category: item.category || 'Địa điểm di sản',
+    address: item.address || '',
+    latitude: Number(item.latitude || 21.1861),
+    longitude: Number(item.longitude || 106.0763),
+    image_url: item.image_url || item.imageUrl || '',
+    summary: item.summary || '',
+    content: item.content || '',
+    status: item.status !== undefined ? Boolean(item.status) : true,
+    sort_order: item.sort_order ?? item.sortOrder ?? 0,
+    created_at: item.created_at,
+    updated_at: item.updated_at,
+  };
+}
 
 export default apiService;
